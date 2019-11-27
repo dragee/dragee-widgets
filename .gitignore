@@ -1,0 +1,7 @@
+node_modules
+node_modules/*
+documentation/*
+.idea/*
+.DS_Store
+yarn-error.log
+dist/index.esm.dev.js
