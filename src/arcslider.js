@@ -14,7 +14,7 @@ import EventEmitter from './EventEmitter'
 
 export default class ArcSlider extends EventEmitter {
   constructor(area, element, options={}) {
-    super(undefined, options)
+    super(options)
     const areaRectangle = Rectangle.fromElement(area, area)
     this.options = Object.assign({
       center: areaRectangle.getCenter(),

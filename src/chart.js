@@ -45,7 +45,7 @@ function getArrayWithBoundIndexes(index, length) {
 
 export default class Chart extends EventEmitter {
   constructor (area, elements, options={}) {
-    super(undefined, options)
+    super(options)
     const areaRectangle = Rectangle.fromElement(area, area)
     this.options = Object.assign({
       center: areaRectangle.getCenter(),
