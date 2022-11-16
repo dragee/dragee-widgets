@@ -1,3 +1,238 @@
+function _classCallCheck$1(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+}
+function _defineProperties$1(target, props) {
+  for (var i = 0; i < props.length; i++) {
+    var descriptor = props[i];
+    descriptor.enumerable = descriptor.enumerable || false;
+    descriptor.configurable = true;
+    if ("value" in descriptor) descriptor.writable = true;
+    Object.defineProperty(target, descriptor.key, descriptor);
+  }
+}
+function _createClass$1(Constructor, protoProps, staticProps) {
+  if (protoProps) _defineProperties$1(Constructor.prototype, protoProps);
+  if (staticProps) _defineProperties$1(Constructor, staticProps);
+  Object.defineProperty(Constructor, "prototype", {
+    writable: false
+  });
+  return Constructor;
+}
+function _inherits$1(subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function");
+  }
+  subClass.prototype = Object.create(superClass && superClass.prototype, {
+    constructor: {
+      value: subClass,
+      writable: true,
+      configurable: true
+    }
+  });
+  Object.defineProperty(subClass, "prototype", {
+    writable: false
+  });
+  if (superClass) _setPrototypeOf$1(subClass, superClass);
+}
+function _getPrototypeOf$1(o) {
+  _getPrototypeOf$1 = Object.setPrototypeOf ? Object.getPrototypeOf.bind() : function _getPrototypeOf(o) {
+    return o.__proto__ || Object.getPrototypeOf(o);
+  };
+  return _getPrototypeOf$1(o);
+}
+function _setPrototypeOf$1(o, p) {
+  _setPrototypeOf$1 = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function _setPrototypeOf(o, p) {
+    o.__proto__ = p;
+    return o;
+  };
+  return _setPrototypeOf$1(o, p);
+}
+function _isNativeReflectConstruct$1() {
+  if (typeof Reflect === "undefined" || !Reflect.construct) return false;
+  if (Reflect.construct.sham) return false;
+  if (typeof Proxy === "function") return true;
+  try {
+    Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {}));
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+function _assertThisInitialized$1(self) {
+  if (self === void 0) {
+    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  }
+  return self;
+}
+function _possibleConstructorReturn$1(self, call) {
+  if (call && (typeof call === "object" || typeof call === "function")) {
+    return call;
+  } else if (call !== void 0) {
+    throw new TypeError("Derived constructors may only return object or undefined");
+  }
+  return _assertThisInitialized$1(self);
+}
+function _createSuper$1(Derived) {
+  var hasNativeReflectConstruct = _isNativeReflectConstruct$1();
+  return function _createSuperInternal() {
+    var Super = _getPrototypeOf$1(Derived),
+      result;
+    if (hasNativeReflectConstruct) {
+      var NewTarget = _getPrototypeOf$1(this).constructor;
+      result = Reflect.construct(Super, arguments, NewTarget);
+    } else {
+      result = Super.apply(this, arguments);
+    }
+    return _possibleConstructorReturn$1(this, result);
+  };
+}
+function _slicedToArray$1(arr, i) {
+  return _arrayWithHoles$1(arr) || _iterableToArrayLimit$1(arr, i) || _unsupportedIterableToArray$1(arr, i) || _nonIterableRest$1();
+}
+function _toConsumableArray$1(arr) {
+  return _arrayWithoutHoles$1(arr) || _iterableToArray$1(arr) || _unsupportedIterableToArray$1(arr) || _nonIterableSpread$1();
+}
+function _arrayWithoutHoles$1(arr) {
+  if (Array.isArray(arr)) return _arrayLikeToArray$1(arr);
+}
+function _arrayWithHoles$1(arr) {
+  if (Array.isArray(arr)) return arr;
+}
+function _iterableToArray$1(iter) {
+  if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter);
+}
+function _iterableToArrayLimit$1(arr, i) {
+  var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"];
+  if (_i == null) return;
+  var _arr = [];
+  var _n = true;
+  var _d = false;
+  var _s, _e;
+  try {
+    for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) {
+      _arr.push(_s.value);
+      if (i && _arr.length === i) break;
+    }
+  } catch (err) {
+    _d = true;
+    _e = err;
+  } finally {
+    try {
+      if (!_n && _i["return"] != null) _i["return"]();
+    } finally {
+      if (_d) throw _e;
+    }
+  }
+  return _arr;
+}
+function _unsupportedIterableToArray$1(o, minLen) {
+  if (!o) return;
+  if (typeof o === "string") return _arrayLikeToArray$1(o, minLen);
+  var n = Object.prototype.toString.call(o).slice(8, -1);
+  if (n === "Object" && o.constructor) n = o.constructor.name;
+  if (n === "Map" || n === "Set") return Array.from(o);
+  if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray$1(o, minLen);
+}
+function _arrayLikeToArray$1(arr, len) {
+  if (len == null || len > arr.length) len = arr.length;
+  for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i];
+  return arr2;
+}
+function _nonIterableSpread$1() {
+  throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+}
+function _nonIterableRest$1() {
+  throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+}
+function _createForOfIteratorHelper$1(o, allowArrayLike) {
+  var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"];
+  if (!it) {
+    if (Array.isArray(o) || (it = _unsupportedIterableToArray$1(o)) || allowArrayLike && o && typeof o.length === "number") {
+      if (it) o = it;
+      var i = 0;
+      var F = function () {};
+      return {
+        s: F,
+        n: function () {
+          if (i >= o.length) return {
+            done: true
+          };
+          return {
+            done: false,
+            value: o[i++]
+          };
+        },
+        e: function (e) {
+          throw e;
+        },
+        f: F
+      };
+    }
+    throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+  }
+  var normalCompletion = true,
+    didErr = false,
+    err;
+  return {
+    s: function () {
+      it = it.call(o);
+    },
+    n: function () {
+      var step = it.next();
+      normalCompletion = step.done;
+      return step;
+    },
+    e: function (e) {
+      didErr = true;
+      err = e;
+    },
+    f: function () {
+      try {
+        if (!normalCompletion && it.return != null) it.return();
+      } finally {
+        if (didErr) throw err;
+      }
+    }
+  };
+}
+
+function setStyle(element, style) {
+  style = style || {};
+  var cssText = '';
+  for (var key in style) {
+    if (style.hasOwnProperty(key)) {
+      cssText += key + ': ' + style[key] + '; ';
+    }
+  }
+  element.style.cssText = cssText;
+}
+function appendFirstChild(element, node) {
+  if (element.firstChild) {
+    element.insertBefore(node, element.firstChild);
+  } else {
+    element.appendChild(node);
+  }
+}
+function createCanvas(area, rectagle) {
+  var canvas = document.createElement('canvas');
+  if (window.getComputedStyle(area).position === 'static') {
+    area.style.position = 'relative';
+  }
+  canvas.setAttribute('width', rectagle.size.x + 'px');
+  canvas.setAttribute('height', rectagle.size.y + 'px');
+  setStyle(canvas, {
+    position: 'absolute',
+    left: rectagle.position.y + 'px',
+    top: rectagle.position.y + 'px',
+    width: rectagle.size.x + 'px',
+    height: rectagle.size.y + 'px'
+  });
+  appendFirstChild(area, canvas);
+  return canvas;
+}
+
 function _classCallCheck(instance, Constructor) {
   if (!(instance instanceof Constructor)) {
     throw new TypeError("Cannot call a class as a function");
@@ -17,6 +252,9 @@ function _defineProperties(target, props) {
 function _createClass(Constructor, protoProps, staticProps) {
   if (protoProps) _defineProperties(Constructor.prototype, protoProps);
   if (staticProps) _defineProperties(Constructor, staticProps);
+  Object.defineProperty(Constructor, "prototype", {
+    writable: false
+  });
   return Constructor;
 }
 
@@ -31,6 +269,9 @@ function _inherits(subClass, superClass) {
       writable: true,
       configurable: true
     }
+  });
+  Object.defineProperty(subClass, "prototype", {
+    writable: false
   });
   if (superClass) _setPrototypeOf(subClass, superClass);
 }
@@ -57,11 +298,28 @@ function _isNativeReflectConstruct() {
   if (typeof Proxy === "function") return true;
 
   try {
-    Date.prototype.toString.call(Reflect.construct(Date, [], function () {}));
+    Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {}));
     return true;
   } catch (e) {
     return false;
   }
+}
+
+function _construct(Parent, args, Class) {
+  if (_isNativeReflectConstruct()) {
+    _construct = Reflect.construct;
+  } else {
+    _construct = function _construct(Parent, args, Class) {
+      var a = [null];
+      a.push.apply(a, args);
+      var Constructor = Function.bind.apply(Parent, a);
+      var instance = new Constructor();
+      if (Class) _setPrototypeOf(instance, Class.prototype);
+      return instance;
+    };
+  }
+
+  return _construct.apply(null, arguments);
 }
 
 function _assertThisInitialized(self) {
@@ -75,17 +333,21 @@ function _assertThisInitialized(self) {
 function _possibleConstructorReturn(self, call) {
   if (call && (typeof call === "object" || typeof call === "function")) {
     return call;
+  } else if (call !== void 0) {
+    throw new TypeError("Derived constructors may only return object or undefined");
   }
 
   return _assertThisInitialized(self);
 }
 
 function _createSuper(Derived) {
-  return function () {
+  var hasNativeReflectConstruct = _isNativeReflectConstruct();
+
+  return function _createSuperInternal() {
     var Super = _getPrototypeOf(Derived),
         result;
 
-    if (_isNativeReflectConstruct()) {
+    if (hasNativeReflectConstruct) {
       var NewTarget = _getPrototypeOf(this).constructor;
 
       result = Reflect.construct(Super, arguments, NewTarget);
@@ -114,18 +376,21 @@ function _arrayWithHoles(arr) {
 }
 
 function _iterableToArray(iter) {
-  if (typeof Symbol !== "undefined" && Symbol.iterator in Object(iter)) return Array.from(iter);
+  if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter);
 }
 
 function _iterableToArrayLimit(arr, i) {
-  if (typeof Symbol === "undefined" || !(Symbol.iterator in Object(arr))) return;
+  var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"];
+
+  if (_i == null) return;
   var _arr = [];
   var _n = true;
   var _d = false;
-  var _e = undefined;
+
+  var _s, _e;
 
   try {
-    for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) {
+    for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) {
       _arr.push(_s.value);
 
       if (i && _arr.length === i) break;
@@ -149,7 +414,7 @@ function _unsupportedIterableToArray(o, minLen) {
   if (typeof o === "string") return _arrayLikeToArray(o, minLen);
   var n = Object.prototype.toString.call(o).slice(8, -1);
   if (n === "Object" && o.constructor) n = o.constructor.name;
-  if (n === "Map" || n === "Set") return Array.from(n);
+  if (n === "Map" || n === "Set") return Array.from(o);
   if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen);
 }
 
@@ -169,9 +434,12 @@ function _nonIterableRest() {
   throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
 }
 
-function _createForOfIteratorHelper(o) {
-  if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) {
-    if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) {
+function _createForOfIteratorHelper(o, allowArrayLike) {
+  var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"];
+
+  if (!it) {
+    if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") {
+      if (it) o = it;
       var i = 0;
 
       var F = function () {};
@@ -197,13 +465,12 @@ function _createForOfIteratorHelper(o) {
     throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
 
-  var it,
-      normalCompletion = true,
+  var normalCompletion = true,
       didErr = false,
       err;
   return {
     s: function () {
-      it = o[Symbol.iterator]();
+      it = it.call(o);
     },
     n: function () {
       var step = it.next();
@@ -224,298 +491,7 @@ function _createForOfIteratorHelper(o) {
   };
 }
 
-function setStyle(element, style) {
-  style = style || {};
-  var cssText = '';
-
-  for (var key in style) {
-    if (style.hasOwnProperty(key)) {
-      cssText += key + ': ' + style[key] + '; ';
-    }
-  }
-
-  element.style.cssText = cssText;
-}
-
-function appendFirstChild(element, node) {
-  if (element.firstChild) {
-    element.insertBefore(node, element.firstChild);
-  } else {
-    element.appendChild(node);
-  }
-}
-
-function createCanvas(area, rectagle) {
-  var canvas = document.createElement('canvas');
-
-  if (window.getComputedStyle(area).position === 'static') {
-    area.style.position = 'relative';
-  }
-
-  canvas.setAttribute('width', rectagle.size.x + 'px');
-  canvas.setAttribute('height', rectagle.size.y + 'px');
-  setStyle(canvas, {
-    position: 'absolute',
-    left: rectagle.position.y + 'px',
-    top: rectagle.position.y + 'px',
-    width: rectagle.size.x + 'px',
-    height: rectagle.size.y + 'px'
-  });
-  appendFirstChild(area, canvas);
-  return canvas;
-}
-
-function _classCallCheck$1(instance, Constructor) {
-  if (!(instance instanceof Constructor)) {
-    throw new TypeError("Cannot call a class as a function");
-  }
-}
-
-function _defineProperties$1(target, props) {
-  for (var i = 0; i < props.length; i++) {
-    var descriptor = props[i];
-    descriptor.enumerable = descriptor.enumerable || false;
-    descriptor.configurable = true;
-    if ("value" in descriptor) descriptor.writable = true;
-    Object.defineProperty(target, descriptor.key, descriptor);
-  }
-}
-
-function _createClass$1(Constructor, protoProps, staticProps) {
-  if (protoProps) _defineProperties$1(Constructor.prototype, protoProps);
-  if (staticProps) _defineProperties$1(Constructor, staticProps);
-  return Constructor;
-}
-
-function _inherits$1(subClass, superClass) {
-  if (typeof superClass !== "function" && superClass !== null) {
-    throw new TypeError("Super expression must either be null or a function");
-  }
-
-  subClass.prototype = Object.create(superClass && superClass.prototype, {
-    constructor: {
-      value: subClass,
-      writable: true,
-      configurable: true
-    }
-  });
-  if (superClass) _setPrototypeOf$1(subClass, superClass);
-}
-
-function _getPrototypeOf$1(o) {
-  _getPrototypeOf$1 = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) {
-    return o.__proto__ || Object.getPrototypeOf(o);
-  };
-  return _getPrototypeOf$1(o);
-}
-
-function _setPrototypeOf$1(o, p) {
-  _setPrototypeOf$1 = Object.setPrototypeOf || function _setPrototypeOf(o, p) {
-    o.__proto__ = p;
-    return o;
-  };
-
-  return _setPrototypeOf$1(o, p);
-}
-
-function _isNativeReflectConstruct$1() {
-  if (typeof Reflect === "undefined" || !Reflect.construct) return false;
-  if (Reflect.construct.sham) return false;
-  if (typeof Proxy === "function") return true;
-
-  try {
-    Date.prototype.toString.call(Reflect.construct(Date, [], function () {}));
-    return true;
-  } catch (e) {
-    return false;
-  }
-}
-
-function _construct(Parent, args, Class) {
-  if (_isNativeReflectConstruct$1()) {
-    _construct = Reflect.construct;
-  } else {
-    _construct = function _construct(Parent, args, Class) {
-      var a = [null];
-      a.push.apply(a, args);
-      var Constructor = Function.bind.apply(Parent, a);
-      var instance = new Constructor();
-      if (Class) _setPrototypeOf$1(instance, Class.prototype);
-      return instance;
-    };
-  }
-
-  return _construct.apply(null, arguments);
-}
-
-function _assertThisInitialized$1(self) {
-  if (self === void 0) {
-    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-  }
-
-  return self;
-}
-
-function _possibleConstructorReturn$1(self, call) {
-  if (call && (typeof call === "object" || typeof call === "function")) {
-    return call;
-  }
-
-  return _assertThisInitialized$1(self);
-}
-
-function _createSuper$1(Derived) {
-  return function () {
-    var Super = _getPrototypeOf$1(Derived),
-        result;
-
-    if (_isNativeReflectConstruct$1()) {
-      var NewTarget = _getPrototypeOf$1(this).constructor;
-
-      result = Reflect.construct(Super, arguments, NewTarget);
-    } else {
-      result = Super.apply(this, arguments);
-    }
-
-    return _possibleConstructorReturn$1(this, result);
-  };
-}
-
-function _slicedToArray$1(arr, i) {
-  return _arrayWithHoles$1(arr) || _iterableToArrayLimit$1(arr, i) || _unsupportedIterableToArray$1(arr, i) || _nonIterableRest$1();
-}
-
-function _toConsumableArray$1(arr) {
-  return _arrayWithoutHoles$1(arr) || _iterableToArray$1(arr) || _unsupportedIterableToArray$1(arr) || _nonIterableSpread$1();
-}
-
-function _arrayWithoutHoles$1(arr) {
-  if (Array.isArray(arr)) return _arrayLikeToArray$1(arr);
-}
-
-function _arrayWithHoles$1(arr) {
-  if (Array.isArray(arr)) return arr;
-}
-
-function _iterableToArray$1(iter) {
-  if (typeof Symbol !== "undefined" && Symbol.iterator in Object(iter)) return Array.from(iter);
-}
-
-function _iterableToArrayLimit$1(arr, i) {
-  if (typeof Symbol === "undefined" || !(Symbol.iterator in Object(arr))) return;
-  var _arr = [];
-  var _n = true;
-  var _d = false;
-  var _e = undefined;
-
-  try {
-    for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) {
-      _arr.push(_s.value);
-
-      if (i && _arr.length === i) break;
-    }
-  } catch (err) {
-    _d = true;
-    _e = err;
-  } finally {
-    try {
-      if (!_n && _i["return"] != null) _i["return"]();
-    } finally {
-      if (_d) throw _e;
-    }
-  }
-
-  return _arr;
-}
-
-function _unsupportedIterableToArray$1(o, minLen) {
-  if (!o) return;
-  if (typeof o === "string") return _arrayLikeToArray$1(o, minLen);
-  var n = Object.prototype.toString.call(o).slice(8, -1);
-  if (n === "Object" && o.constructor) n = o.constructor.name;
-  if (n === "Map" || n === "Set") return Array.from(n);
-  if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray$1(o, minLen);
-}
-
-function _arrayLikeToArray$1(arr, len) {
-  if (len == null || len > arr.length) len = arr.length;
-
-  for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i];
-
-  return arr2;
-}
-
-function _nonIterableSpread$1() {
-  throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
-}
-
-function _nonIterableRest$1() {
-  throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
-}
-
-function _createForOfIteratorHelper$1(o) {
-  if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) {
-    if (Array.isArray(o) || (o = _unsupportedIterableToArray$1(o))) {
-      var i = 0;
-
-      var F = function () {};
-
-      return {
-        s: F,
-        n: function () {
-          if (i >= o.length) return {
-            done: true
-          };
-          return {
-            done: false,
-            value: o[i++]
-          };
-        },
-        e: function (e) {
-          throw e;
-        },
-        f: F
-      };
-    }
-
-    throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
-  }
-
-  var it,
-      normalCompletion = true,
-      didErr = false,
-      err;
-  return {
-    s: function () {
-      it = o[Symbol.iterator]();
-    },
-    n: function () {
-      var step = it.next();
-      normalCompletion = step.done;
-      return step;
-    },
-    e: function (e) {
-      didErr = true;
-      err = e;
-    },
-    f: function () {
-      try {
-        if (!normalCompletion && it.return != null) it.return();
-      } finally {
-        if (didErr) throw err;
-      }
-    }
-  };
-}
-
-function getSumValueOfStyleRules(element, rules) {
-  return rules.reduce(function (sum, rule) {
-    return sum + parseInt(window.getComputedStyle(element)[rule] || 0);
-  }, 0);
-}
 /** Class representing a point. */
-
-
 var Point = /*#__PURE__*/function () {
   /**
   * Create a point.
@@ -523,13 +499,13 @@ var Point = /*#__PURE__*/function () {
   * @param {number} y - The y value.
   */
   function Point(x, y) {
-    _classCallCheck$1(this, Point);
+    _classCallCheck(this, Point);
 
     this.x = x;
     this.y = y;
   }
 
-  _createClass$1(Point, [{
+  _createClass(Point, [{
     key: "add",
     value: function add(p) {
       return new Point(this.x + p.x, this.y + p.y);
@@ -575,16 +551,8 @@ var Point = /*#__PURE__*/function () {
   }, {
     key: "elementSize",
     value: function elementSize(element) {
-      var isContentBoxSize = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
-      var width = parseInt(window.getComputedStyle(element)['width']);
-      var height = parseInt(window.getComputedStyle(element)['height']);
-
-      if (!isContentBoxSize) {
-        width += getSumValueOfStyleRules(element, ['padding-left', 'padding-right', 'border-left-width', 'border-right-width']);
-        height += getSumValueOfStyleRules(element, ['padding-top', 'padding-bottom', 'border-top-width', 'border-bottom-width']);
-      }
-
-      return new Point(width, height);
+      var elementRect = element.getBoundingClientRect();
+      return new Point(elementRect.width, elementRect.height);
     }
   }]);
 
@@ -593,13 +561,13 @@ var Point = /*#__PURE__*/function () {
 
 var Rectangle = /*#__PURE__*/function () {
   function Rectangle(position, size) {
-    _classCallCheck$1(this, Rectangle);
+    _classCallCheck(this, Rectangle);
 
     this.position = position;
     this.size = size;
   }
 
-  _createClass$1(Rectangle, [{
+  _createClass(Rectangle, [{
     key: "getP1",
     value: function getP1() {
       return this.position;
@@ -706,30 +674,15 @@ var Rectangle = /*#__PURE__*/function () {
     key: "fromElement",
     value: function fromElement(element) {
       var parent = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : element.parentNode;
-      var isContentBoxSize = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
-      var isConsiderTranslate = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
+      var isConsiderTranslate = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
       var position = Point.elementOffset(element, parent, isConsiderTranslate);
-      var size = Point.elementSize(element, isContentBoxSize);
+      var size = Point.elementSize(element);
       return new Rectangle(position, size);
     }
   }]);
 
   return Rectangle;
 }();
-
-function hasClass(element, c) {
-  var re = new RegExp('(^|\\s)' + c + '(\\s|$)', 'g');
-  return re.test(element.className);
-}
-function addClass(element, c) {
-  if (!hasClass(element, c)) {
-    element.className = (element.className + ' ' + c).replace(/\s+/g, ' ').replace(/(^ | $)/g, '');
-  }
-}
-function removeClass(element, c) {
-  var re = new RegExp('(^|\\s)' + c + '(\\s|$)', 'g');
-  element.className = element.className.replace(re, '$1').replace(/\s+/g, ' ').replace(/(^ | $)/g, '');
-}
 
 function getDefaultContainer(element) {
   var container = element.parentNode;
@@ -741,17 +694,17 @@ function getDefaultContainer(element) {
   return container;
 }
 
-var EventEmitter = /*#__PURE__*/function () {
+var EventEmitter$1 = /*#__PURE__*/function () {
   function EventEmitter() {
     var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
-    _classCallCheck$1(this, EventEmitter);
+    _classCallCheck(this, EventEmitter);
 
     this.events = {};
 
     if (options && options.on) {
       for (var _i = 0, _Object$entries = Object.entries(options.on); _i < _Object$entries.length; _i++) {
-        var _Object$entries$_i = _slicedToArray$1(_Object$entries[_i], 2),
+        var _Object$entries$_i = _slicedToArray(_Object$entries[_i], 2),
             eventName = _Object$entries$_i[0],
             fn = _Object$entries$_i[1];
 
@@ -760,20 +713,20 @@ var EventEmitter = /*#__PURE__*/function () {
     }
   }
 
-  _createClass$1(EventEmitter, [{
+  _createClass(EventEmitter, [{
     key: "emit",
     value: function emit(eventName) {
       this.interrupted = false;
       var args = [].slice.call(arguments, 1);
       if (!this.events[eventName]) return;
 
-      var _iterator = _createForOfIteratorHelper$1(this.events[eventName]),
+      var _iterator = _createForOfIteratorHelper(this.events[eventName]),
           _step;
 
       try {
         for (_iterator.s(); !(_step = _iterator.n()).done;) {
           var func = _step.value;
-          func.apply(void 0, _toConsumableArray$1(args));
+          func.apply(void 0, _toConsumableArray(args));
 
           if (this.interrupted) {
             return;
@@ -985,9 +938,9 @@ function getAngleDiff(alpha, beta) {
   var maxAngle = Math.max(alpha, beta);
   return Math.min(maxAngle - minAngle, minAngle + Math.PI * 2 - maxAngle);
 }
-function getAngle(p1, p2) {
+function getAngle$1(p1, p2) {
   var diff = p2.sub(p1);
-  return normalizeAngle(Math.atan2(diff.y, diff.x));
+  return normalizeAngle$1(Math.atan2(diff.y, diff.x));
 }
 function boundAngle(min, max, val) {
   var dmin, dmax;
@@ -1007,7 +960,7 @@ function boundAngle(min, max, val) {
     }
   }
 }
-function normalizeAngle(val) {
+function normalizeAngle$1(val) {
   while (val < 0) {
     val += 2 * Math.PI;
   }
@@ -1018,17 +971,17 @@ function normalizeAngle(val) {
 
   return val;
 }
-function getPointFromRadialSystem(angle, length, center) {
+function getPointFromRadialSystem$1(angle, length, center) {
   center = center || new Point(0, 0);
   return center.add(new Point(length * Math.cos(angle), length * Math.sin(angle)));
 }
 
 var Bound = /*#__PURE__*/function () {
   function Bound() {
-    _classCallCheck$1(this, Bound);
+    _classCallCheck(this, Bound);
   }
 
-  _createClass$1(Bound, [{
+  _createClass(Bound, [{
     key: "bound",
     value: function bound(point, _size) {
       return point;
@@ -1048,21 +1001,21 @@ var Bound = /*#__PURE__*/function () {
   return Bound;
 }();
 var BoundToRectangle = /*#__PURE__*/function (_Bound) {
-  _inherits$1(BoundToRectangle, _Bound);
+  _inherits(BoundToRectangle, _Bound);
 
-  var _super = _createSuper$1(BoundToRectangle);
+  var _super = _createSuper(BoundToRectangle);
 
   function BoundToRectangle(rectangle) {
     var _this;
 
-    _classCallCheck$1(this, BoundToRectangle);
+    _classCallCheck(this, BoundToRectangle);
 
     _this = _super.call(this);
     _this.rectangle = rectangle;
     return _this;
   }
 
-  _createClass$1(BoundToRectangle, [{
+  _createClass(BoundToRectangle, [{
     key: "bound",
     value: function bound(point, size) {
       var calcPoint = point.clone();
@@ -1091,14 +1044,14 @@ var BoundToRectangle = /*#__PURE__*/function (_Bound) {
   return BoundToRectangle;
 }(Bound);
 var BoundToElement = /*#__PURE__*/function (_BoundToRectangle) {
-  _inherits$1(BoundToElement, _BoundToRectangle);
+  _inherits(BoundToElement, _BoundToRectangle);
 
-  var _super2 = _createSuper$1(BoundToElement);
+  var _super2 = _createSuper(BoundToElement);
 
   function BoundToElement(element, container) {
     var _this2;
 
-    _classCallCheck$1(this, BoundToElement);
+    _classCallCheck(this, BoundToElement);
 
     _this2 = _super2.call(this, Rectangle.fromElement(element, container));
     _this2.element = element;
@@ -1106,7 +1059,7 @@ var BoundToElement = /*#__PURE__*/function (_BoundToRectangle) {
     return _this2;
   }
 
-  _createClass$1(BoundToElement, [{
+  _createClass(BoundToElement, [{
     key: "refresh",
     value: function refresh() {
       this.rectangle = Rectangle.fromElement(this.element, this.container);
@@ -1116,14 +1069,14 @@ var BoundToElement = /*#__PURE__*/function (_BoundToRectangle) {
   return BoundToElement;
 }(BoundToRectangle);
 var BoundToLine = /*#__PURE__*/function (_Bound4) {
-  _inherits$1(BoundToLine, _Bound4);
+  _inherits(BoundToLine, _Bound4);
 
-  var _super5 = _createSuper$1(BoundToLine);
+  var _super5 = _createSuper(BoundToLine);
 
   function BoundToLine(startPoint, endPoint) {
     var _this5;
 
-    _classCallCheck$1(this, BoundToLine);
+    _classCallCheck(this, BoundToLine);
 
     _this5 = _super5.call(this);
     _this5.startPoint = startPoint;
@@ -1136,7 +1089,7 @@ var BoundToLine = /*#__PURE__*/function (_Bound4) {
     return _this5;
   }
 
-  _createClass$1(BoundToLine, [{
+  _createClass(BoundToLine, [{
     key: "bound",
     value: function bound(point, size) {
       var point2 = new Point(point.x + this.someK * this.cosBeta, point.y + this.someK * this.sinBeta);
@@ -1149,14 +1102,14 @@ var BoundToLine = /*#__PURE__*/function (_Bound4) {
   return BoundToLine;
 }(Bound);
 var BoundToCircle = /*#__PURE__*/function (_Bound5) {
-  _inherits$1(BoundToCircle, _Bound5);
+  _inherits(BoundToCircle, _Bound5);
 
-  var _super6 = _createSuper$1(BoundToCircle);
+  var _super6 = _createSuper(BoundToCircle);
 
   function BoundToCircle(center, radius) {
     var _this6;
 
-    _classCallCheck$1(this, BoundToCircle);
+    _classCallCheck(this, BoundToCircle);
 
     _this6 = _super6.call(this);
     _this6.center = center;
@@ -1164,7 +1117,7 @@ var BoundToCircle = /*#__PURE__*/function (_Bound5) {
     return _this6;
   }
 
-  _createClass$1(BoundToCircle, [{
+  _createClass(BoundToCircle, [{
     key: "bound",
     value: function bound(point, _size) {
       return getPointOnLineByLenght(this.center, point, this.radius);
@@ -1174,14 +1127,14 @@ var BoundToCircle = /*#__PURE__*/function (_Bound5) {
   return BoundToCircle;
 }(Bound);
 var BoundToArc = /*#__PURE__*/function (_BoundToCircle) {
-  _inherits$1(BoundToArc, _BoundToCircle);
+  _inherits(BoundToArc, _BoundToCircle);
 
-  var _super7 = _createSuper$1(BoundToArc);
+  var _super7 = _createSuper(BoundToArc);
 
   function BoundToArc(center, radius, startAngle, endAngle) {
     var _this7;
 
-    _classCallCheck$1(this, BoundToArc);
+    _classCallCheck(this, BoundToArc);
 
     _this7 = _super7.call(this, center, radius);
     _this7._startAngle = startAngle;
@@ -1189,7 +1142,7 @@ var BoundToArc = /*#__PURE__*/function (_BoundToCircle) {
     return _this7;
   }
 
-  _createClass$1(BoundToArc, [{
+  _createClass(BoundToArc, [{
     key: "startAngle",
     value: function startAngle() {
       return typeof this._startAngle === 'function' ? this._startAngle() : this._startAngle;
@@ -1202,10 +1155,10 @@ var BoundToArc = /*#__PURE__*/function (_BoundToCircle) {
   }, {
     key: "bound",
     value: function bound(point, _size) {
-      var angle = getAngle(this.center, point);
-      angle = normalizeAngle(angle);
+      var angle = getAngle$1(this.center, point);
+      angle = normalizeAngle$1(angle);
       angle = boundAngle(this.startAngle(), this.endAngle(), angle);
-      return getPointFromRadialSystem(angle, this.radius, this.center);
+      return getPointFromRadialSystem$1(angle, this.radius, this.center);
     }
   }]);
 
@@ -1223,7 +1176,7 @@ function removeItem (array, val) {
   return array;
 }
 
-function range(start, stop, step) {
+function range$1(start, stop, step) {
   var result = [];
 
   if (typeof stop === 'undefined') {
@@ -1250,13 +1203,13 @@ var BasicStrategy = /*#__PURE__*/function () {
   function BasicStrategy(rectangle) {
     var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
-    _classCallCheck$1(this, BasicStrategy);
+    _classCallCheck(this, BasicStrategy);
 
     this.rectangle = rectangle;
     this.options = options;
   }
 
-  _createClass$1(BasicStrategy, [{
+  _createClass(BasicStrategy, [{
     key: "boundRect",
     get: function get() {
       return typeof this.rectangle === 'function' ? this.rectangle() : this.rectangle;
@@ -1267,16 +1220,16 @@ var BasicStrategy = /*#__PURE__*/function () {
 }();
 
 var FloatLeftStrategy = /*#__PURE__*/function (_BasicStrategy2) {
-  _inherits$1(FloatLeftStrategy, _BasicStrategy2);
+  _inherits(FloatLeftStrategy, _BasicStrategy2);
 
-  var _super2 = _createSuper$1(FloatLeftStrategy);
+  var _super2 = _createSuper(FloatLeftStrategy);
 
   function FloatLeftStrategy(rectangle) {
     var _this2;
 
     var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
-    _classCallCheck$1(this, FloatLeftStrategy);
+    _classCallCheck(this, FloatLeftStrategy);
 
     _this2 = _super2.call(this, rectangle, options);
     _this2.options = Object.assign({
@@ -1295,7 +1248,7 @@ var FloatLeftStrategy = /*#__PURE__*/function (_BasicStrategy2) {
     return _this2;
   }
 
-  _createClass$1(FloatLeftStrategy, [{
+  _createClass(FloatLeftStrategy, [{
     key: "positioning",
     value: function positioning(rectangleList, _indexesOfNews) {
       var _this3 = this;
@@ -1360,31 +1313,31 @@ var FloatLeftStrategy = /*#__PURE__*/function (_BasicStrategy2) {
   return FloatLeftStrategy;
 }(BasicStrategy);
 
-var addToDefaultScope = function addToDefaultScope(target) {
+var addToDefaultScope$1 = function addToDefaultScope(target) {
   defaultScope.addTarget(target);
 };
 
 var Target = /*#__PURE__*/function (_EventEmitter) {
-  _inherits$1(Target, _EventEmitter);
+  _inherits(Target, _EventEmitter);
 
-  var _super = _createSuper$1(Target);
+  var _super = _createSuper(Target);
 
   function Target(element, draggables) {
     var _this;
 
     var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
 
-    _classCallCheck$1(this, Target);
+    _classCallCheck(this, Target);
 
     _this = _super.call(this, options);
 
-    var target = _assertThisInitialized$1(_this);
+    var target = _assertThisInitialized(_this);
 
     _this.options = Object.assign({
       timeEnd: 200,
       timeExcange: 400
     }, options);
-    _this.positioningStrategy = options.strategy || new FloatLeftStrategy(_this.getRectangle.bind(_assertThisInitialized$1(_this)), {
+    _this.positioningStrategy = options.strategy || new FloatLeftStrategy(_this.getRectangle.bind(_assertThisInitialized(_this)), {
       radius: 80,
       getDistance: transformedSpaceDistanceFactory({
         x: 1,
@@ -1397,7 +1350,7 @@ var Target = /*#__PURE__*/function (_EventEmitter) {
       return draggable.targets.push(target);
     });
     _this.draggables = draggables;
-    Target.emitter.emit('target:create', _assertThisInitialized$1(_this));
+    Target.emitter.emit('target:create', _assertThisInitialized(_this));
 
     _this.startBounding();
 
@@ -1406,7 +1359,7 @@ var Target = /*#__PURE__*/function (_EventEmitter) {
     return _this;
   }
 
-  _createClass$1(Target, [{
+  _createClass(Target, [{
     key: "startBounding",
     value: function startBounding() {
       this.bound = this.options.bound || BoundToElement.bounding(this.element);
@@ -1442,7 +1395,7 @@ var Target = /*#__PURE__*/function (_EventEmitter) {
       });
 
       if (this.innerDraggables.length) {
-        indexesOfNew = range(this.innerDraggables.length);
+        indexesOfNew = range$1(this.innerDraggables.length);
         rectangles = this.positioning(this.innerDraggables.map(function (draggable) {
           return draggable.getRectangle();
         }), indexesOfNew);
@@ -1455,7 +1408,7 @@ var Target = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "getRectangle",
     value: function getRectangle() {
-      return Rectangle.fromElement(this.element, this.container, this.options.isContentBoxSize, true);
+      return Rectangle.fromElement(this.element, this.container, true);
     }
   }, {
     key: "catchDraggable",
@@ -1612,23 +1565,23 @@ var Target = /*#__PURE__*/function (_EventEmitter) {
   }]);
 
   return Target;
-}(EventEmitter);
-Target.emitter = new EventEmitter();
-Target.emitter.on('target:create', addToDefaultScope);
+}(EventEmitter$1);
+Target.emitter = new EventEmitter$1();
+Target.emitter.on('target:create', addToDefaultScope$1);
 
 var scopes = [];
 
 var Scope = /*#__PURE__*/function (_EventEmitter) {
-  _inherits$1(Scope, _EventEmitter);
+  _inherits(Scope, _EventEmitter);
 
-  var _super = _createSuper$1(Scope);
+  var _super = _createSuper(Scope);
 
   function Scope(draggables, targets) {
     var _this;
 
     var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
 
-    _classCallCheck$1(this, Scope);
+    _classCallCheck(this, Scope);
 
     _this = _super.call(this, options);
     scopes.forEach(function (scope) {
@@ -1646,7 +1599,7 @@ var Scope = /*#__PURE__*/function (_EventEmitter) {
     });
     _this.draggables = draggables || [];
     _this.targets = targets || [];
-    scopes.push(_assertThisInitialized$1(_this));
+    scopes.push(_assertThisInitialized(_this));
     _this.options = {
       timeEnd: options.timeEnd || 400
     };
@@ -1656,7 +1609,7 @@ var Scope = /*#__PURE__*/function (_EventEmitter) {
     return _this;
   }
 
-  _createClass$1(Scope, [{
+  _createClass(Scope, [{
     key: "init",
     value: function init() {
       var _this2 = this;
@@ -1751,10 +1704,58 @@ var Scope = /*#__PURE__*/function (_EventEmitter) {
   }]);
 
   return Scope;
-}(EventEmitter);
+}(EventEmitter$1);
 
 var defaultScope = new Scope();
 
+function checkSupportPassiveEvents() {
+  var passiveSupported = false;
+
+  try {
+    var options = Object.defineProperty({}, 'passive', {
+      get: function get() {
+        return passiveSupported = true;
+      }
+    });
+    window.addEventListener('test', options, options);
+    window.removeEventListener('test', options, options);
+  } catch (_err) {
+    passiveSupported = false;
+  }
+
+  return passiveSupported;
+}
+
+var isSupportPassiveEvents = checkSupportPassiveEvents();
+var isSupportPassiveEvents$1 = isSupportPassiveEvents;
+
+function throttle(func, wait) {
+  var lastTime = 0;
+  return function executedFunction() {
+    var context = this;
+    var args = arguments;
+    var now = Date.now();
+
+    if (now - lastTime >= wait) {
+      func.apply(context, args);
+      lastTime = now;
+    }
+  };
+}
+
+var throttledDragOver = function throttledDragOver(callback, duration) {
+  var throttledCallback = throttle(function (event) {
+    return callback(event);
+  }, duration);
+  return function (event) {
+    event.preventDefault();
+    throttledCallback(event);
+  };
+};
+
+var passiveFalse = isSupportPassiveEvents$1 ? {
+  passive: false
+} : false;
 var isTouch = ('ontouchstart' in window);
 var mouseEvents = {
   start: 'mousedown',
@@ -1792,11 +1793,11 @@ function preventDoubleInit(draggable) {
   draggables.push(draggable);
 }
 
-function addToDefaultScope$1(draggable) {
+function addToDefaultScope(draggable) {
   defaultScope.addDraggable(draggable);
 }
 
-function copyStyles(source, destination) {
+function _copyStyles(source, destination) {
   var cs = window.getComputedStyle(source);
 
   for (var i = 0; i < cs.length; i++) {
@@ -1808,28 +1809,28 @@ function copyStyles(source, destination) {
   }
 
   for (var _i = 0; _i < source.children.length; _i++) {
-    copyStyles(source.children[_i], destination.children[_i]);
+    _copyStyles(source.children[_i], destination.children[_i]);
   }
 }
 
 var Draggable = /*#__PURE__*/function (_EventEmitter) {
-  _inherits$1(Draggable, _EventEmitter);
+  _inherits(Draggable, _EventEmitter);
 
-  var _super = _createSuper$1(Draggable);
+  var _super = _createSuper(Draggable);
 
   function Draggable(element) {
     var _this;
 
     var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
-    _classCallCheck$1(this, Draggable);
+    _classCallCheck(this, Draggable);
 
     _this = _super.call(this, options);
     _this.targets = [];
     _this.options = options;
     _this.element = element;
-    preventDoubleInit(_assertThisInitialized$1(_this));
-    Draggable.emitter.emit('draggable:create', _assertThisInitialized$1(_this));
+    preventDoubleInit(_assertThisInitialized(_this));
+    Draggable.emitter.emit('draggable:create', _assertThisInitialized(_this));
     _this._enable = true;
 
     _this.startBounding();
@@ -1841,10 +1842,16 @@ var Draggable = /*#__PURE__*/function (_EventEmitter) {
     return _this;
   }
 
-  _createClass$1(Draggable, [{
+  _createClass(Draggable, [{
     key: "startBounding",
     value: function startBounding() {
-      this.bound = this.options.bound || BoundToElement.bounding(this.container, this.container);
+      if (this.options.bound) {
+        this.bounding = {
+          bound: this.options.bound
+        };
+      } else {
+        this.bounding = new BoundToElement(this.container, this.container);
+      }
     }
   }, {
     key: "startPositioning",
@@ -1857,8 +1864,8 @@ var Draggable = /*#__PURE__*/function (_EventEmitter) {
       this.initialPosition = this.options.position || this.offset;
       this.pinPosition(this.initialPosition);
 
-      if (this.bound.refresh) {
-        this.bound.refresh();
+      if (this.bounding.refresh) {
+        this.bounding.refresh();
       }
     }
   }, {
@@ -1882,9 +1889,9 @@ var Draggable = /*#__PURE__*/function (_EventEmitter) {
         return _this2.nativeDragStart(event);
       };
 
-      this._nativeDragOver = function (event) {
+      this._nativeDragOver = throttledDragOver(function (event) {
         return _this2.nativeDragOver(event);
-      };
+      }, this.dragOverThrottleDuration);
 
       this._nativeDragEnd = function (event) {
         return _this2.nativeDragEnd(event);
@@ -1898,14 +1905,14 @@ var Draggable = /*#__PURE__*/function (_EventEmitter) {
         return _this2.onScroll(event);
       };
 
-      this.handler.addEventListener(touchEvents.start, this._dragStart,  false);
-      this.handler.addEventListener(mouseEvents.start, this._dragStart,  false);
+      this.handler.addEventListener(touchEvents.start, this._dragStart, passiveFalse);
+      this.handler.addEventListener(mouseEvents.start, this._dragStart, passiveFalse);
       this.element.addEventListener('dragstart', this._nativeDragStart);
     }
   }, {
     key: "getSize",
     value: function getSize() {
-      return Point.elementSize(this.element, this.options.isContentBoxSize);
+      return Point.elementSize(this.element);
     }
   }, {
     key: "getPosition",
@@ -1921,7 +1928,9 @@ var Draggable = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "_setDefaultTransition",
     value: function _setDefaultTransition() {
-      this.element.style[transitionProperty] = window.getComputedStyle(this.element)[transitionProperty];
+      if (!this.element.style[transitionProperty]) {
+        this.element.style[transitionProperty] = window.getComputedStyle(this.element)[transitionProperty];
+      }
     }
   }, {
     key: "_setTransition",
@@ -1936,10 +1945,12 @@ var Draggable = /*#__PURE__*/function (_EventEmitter) {
           transition = transitionCss;
         }
       } else {
-        transition = transition.replace(/transform \d*m?s/, transitionCss);
+        transition = transition.replace(/transform \d*m?s/g, transitionCss);
       }
 
-      this.element.style[transitionProperty] = transition;
+      if (this.element.style[transitionProperty] !== transition) {
+        this.element.style[transitionProperty] = transition;
+      }
     }
   }, {
     key: "_setTranslate",
@@ -1960,7 +1971,9 @@ var Draggable = /*#__PURE__*/function (_EventEmitter) {
         transform = transform.replace(/translate3d\([^)]+\)/, translateCss);
       }
 
-      this.element.style[transformProperty] = transform;
+      if (this.element.style[transformProperty] !== transform) {
+        this.element.style[transformProperty] = transform;
+      }
     }
   }, {
     key: "move",
@@ -1968,7 +1981,6 @@ var Draggable = /*#__PURE__*/function (_EventEmitter) {
       var time = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
       var isSilent = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
       point = point.clone();
-      this.determineDirection(point);
       this.position = point;
 
       this._setTransition(time);
@@ -2010,132 +2022,151 @@ var Draggable = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "determineDirection",
     value: function determineDirection(point) {
-      this.leftDirection = this.position.x < point.x;
-      this.rightDirection = this.position.x > point.x;
-      this.upDirection = this.position.y > point.y;
-      this.downDirection = this.position.y < point.y;
+      this._previousDirectionPosition || (this._previousDirectionPosition = this._startPosition);
+      this.leftDirection = this._previousDirectionPosition.x < point.x;
+      this.rightDirection = this._previousDirectionPosition.x > point.x;
+      this.upDirection = this._previousDirectionPosition.y > point.y;
+      this.downDirection = this._previousDirectionPosition.y < point.y;
+      this._previousDirectionPosition = point;
+    }
+  }, {
+    key: "seemsScrolling",
+    value: function seemsScrolling() {
+      return +new Date() - this._startTouchTimestamp < this.touchDraggingThreshold;
+    }
+  }, {
+    key: "shouldUseNativeDragAndDrop",
+    value: function shouldUseNativeDragAndDrop() {
+      if (this.isTouchEvent) {
+        return this.nativeDragAndDrop && this.emulateNativeDragAndDropOnTouch;
+      } else {
+        return this.nativeDragAndDrop;
+      }
     }
   }, {
     key: "dragStart",
     value: function dragStart(event) {
-      this.currentEvent = event;
+      var _this3 = this;
 
       if (!this._enable) {
         return;
       }
 
-      var isTouchEvent = isTouch && event instanceof window.TouchEvent;
-      this.touchPoint = this._startTouchPoint = new Point(isTouchEvent ? event.changedTouches[0].pageX : event.clientX, isTouchEvent ? event.changedTouches[0].pageY : event.clientY);
+      this.isTouchEvent = isTouch && event instanceof window.TouchEvent;
+      this.touchPoint = this._startTouchPoint = new Point(this.isTouchEvent ? event.changedTouches[0].pageX : event.clientX, this.isTouchEvent ? event.changedTouches[0].pageY : event.clientY);
       this._startPosition = this.getPosition();
 
-      if (isTouchEvent) {
+      if (this.isTouchEvent) {
         this._touchId = event.changedTouches[0].identifier;
+        this._startTouchTimestamp = +new Date();
       }
 
-      this._startScrollPoint = new Point(window.scrollX, window.scrollY);
-      event.stopPropagation();
+      this._startWindowScrollPoint = this.windowScrollPoint;
+      this._startParentsScrollPoint = this.parentsScrollPoint;
 
       if (event.target instanceof window.HTMLInputElement || event.target instanceof window.HTMLInputElement) {
         event.target.focus();
       }
 
-      if (!(this.nativeDragAndDrop || event.target instanceof window.HTMLInputElement || event.target instanceof window.HTMLInputElement)) {
-        event.preventDefault();
-      }
+      if (this.shouldUseNativeDragAndDrop()) {
+        if (this.isTouchEvent && this.emulateNativeDragAndDropOnTouch) {
+          var emulateOnFirstMove = function emulateOnFirstMove(event) {
+            if (_this3.seemsScrolling()) {
+              _this3.cancelDragging();
+            } else {
+              _this3.emulateNativeDragAndDrop(event);
+            }
 
-      if (this.nativeDragAndDrop) {
-        var isSafari = /version\/(\d+).+?safari/i.test(window.navigator.userAgent);
+            cancelEmulation();
+          };
 
-        if (isTouchEvent && this.emulateNativeDragAndDropOnTouch || isSafari || this.emulateNativeDragAndDropForAll) {
-          this.emulateNativeDragAndDrop(event);
+          var cancelEmulation = function cancelEmulation() {
+            document.removeEventListener(touchEvents.move, emulateOnFirstMove);
+            document.removeEventListener(touchEvents.end, cancelEmulation);
+          };
+
+          document.addEventListener(touchEvents.move, emulateOnFirstMove, passiveFalse);
+          document.addEventListener(touchEvents.end, cancelEmulation, passiveFalse);
         } else {
           this.element.draggable = true;
-          document.addEventListener(mouseEvents.end, this._nativeDragEnd,  false);
+          document.addEventListener(mouseEvents.end, this._nativeDragEnd, passiveFalse);
         }
       } else {
-        document.addEventListener(touchEvents.move, this._dragMove,  false);
-        document.addEventListener(mouseEvents.move, this._dragMove,  false);
-        document.addEventListener(touchEvents.end, this._dragEnd,  false);
-        document.addEventListener(mouseEvents.end, this._dragEnd,  false);
+        document.addEventListener(touchEvents.move, this._dragMove, passiveFalse);
+        document.addEventListener(mouseEvents.move, this._dragMove, passiveFalse);
+        document.addEventListener(touchEvents.end, this._dragEnd, passiveFalse);
+        document.addEventListener(mouseEvents.end, this._dragEnd, passiveFalse);
       }
 
       window.addEventListener('scroll', this._scroll);
-      this.isDragging = true;
+      this.parents.forEach(function (p) {
+        return p.addEventListener('scroll', _this3._scroll);
+      });
       this.emit('drag:start');
-      addClass(this.element, 'dragee-active');
-      this.emit('drag:move');
-    }
-  }, {
-    key: "stopDragging",
-    value: function stopDragging() {
-      document.removeEventListener(touchEvents.move, this._dragMove);
-      document.removeEventListener(mouseEvents.move, this._dragMove);
-      document.removeEventListener(touchEvents.end, this._dragEnd);
-      document.removeEventListener(mouseEvents.end, this._dragEnd);
-      document.removeEventListener('dragover', this._nativeDragOver);
-      document.removeEventListener('dragend', this._nativeDragEnd);
-      document.removeEventListener(mouseEvents.end, this._nativeDragEnd);
-      document.removeEventListener('drop', this._nativeDrop);
-      document.removeEventListener('drop', this._nativeDrop);
-      window.removeEventListener('scroll', this._scroll);
-      this.element.draggable = false;
-      this.isDragging = false;
-      removeClass(this.element, 'dragee-active');
     }
   }, {
     key: "dragMove",
     value: function dragMove(event) {
-      this.currentEvent = event;
       var touch;
-      var isTouchEvent = isTouch && event instanceof window.TouchEvent;
+      this.isDragging = true;
+      this.isTouchEvent = isTouch && event instanceof window.TouchEvent;
 
-      if (isTouchEvent) {
+      if (this.isTouchEvent) {
         touch = getTouchByID(event, this._touchId);
 
         if (!touch) {
+          return;
+        }
+
+        if (this.seemsScrolling()) {
+          this.cancelDragging();
           return;
         }
       }
 
       event.stopPropagation();
       event.preventDefault();
-      this.touchPoint = new Point(isTouchEvent ? touch.pageX : event.clientX, isTouchEvent ? touch.pageY : event.clientY);
+      this.touchPoint = new Point(this.isTouchEvent ? touch.pageX : event.clientX, this.isTouchEvent ? touch.pageY : event.clientY);
 
-      var point = this._startPosition.add(this.touchPoint.sub(this._startTouchPoint)).add(this.scrollPoint.sub(this._startScrollPoint));
+      var point = this._startPosition.add(this.touchPoint.sub(this._startTouchPoint)).add(this.windowScrollPoint.sub(this._startWindowScrollPoint)).add(this.parentsScrollPoint.sub(this._startParentsScrollPoint));
 
-      point = this.bound(point, this.getSize());
+      point = this.bounding.bound(point, this.getSize());
+      this.determineDirection(point);
       this.move(point);
+      this.element.classList.add('dragee-active');
     }
   }, {
     key: "dragEnd",
     value: function dragEnd(event) {
-      var isTouchEvent = isTouch && event instanceof window.TouchEvent;
+      var _this4 = this;
 
-      if (isTouchEvent && !getTouchByID(event, this._touchId)) {
+      this.isTouchEvent = isTouch && event instanceof window.TouchEvent;
+
+      if (this.isTouchEvent && !getTouchByID(event, this._touchId)) {
         return;
       }
 
-      event.stopPropagation();
-      event.preventDefault();
+      if (this.isDragging) {
+        event.stopPropagation();
+        event.preventDefault();
+      }
+
       this.dragEndAction();
       this.emit('drag:end');
-      document.removeEventListener(touchEvents.move, this._dragMove);
-      document.removeEventListener(mouseEvents.move, this._dragMove);
-      document.removeEventListener(touchEvents.end, this._dragEnd);
-      document.removeEventListener(mouseEvents.end, this._dragEnd);
-      window.removeEventListener('scroll', this._scroll);
-      this.isDragging = false;
-      this.element.removeAttribute('draggable');
-      removeClass(this.element, 'dragee-active');
+      this.cancelDragging();
+      setTimeout(function () {
+        return _this4.element.classList.remove('dragee-active');
+      });
     }
   }, {
     key: "onScroll",
     value: function onScroll(_event) {
-      var point = this._startPosition.add(this.touchPoint.sub(this._startTouchPoint)).add(this.scrollPoint.sub(this._startScrollPoint));
+      var point = this._startPosition.add(this.touchPoint.sub(this._startTouchPoint)).add(this.windowScrollPoint.sub(this._startWindowScrollPoint)).add(this.parentsScrollPoint.sub(this._startParentsScrollPoint));
 
-      point = this.bound(point, this.getSize());
+      point = this.bounding.bound(point, this.getSize());
 
       if (!this.nativeDragAndDrop) {
+        this.determineDirection(point);
         this.move(point);
       }
     }
@@ -2153,8 +2184,7 @@ var Draggable = /*#__PURE__*/function (_EventEmitter) {
     value: function nativeDragOver(event) {
       event.preventDefault();
       event.dataTransfer.dropEffect = 'move';
-      addClass(this.element, 'dragee-placeholder');
-      this.currentEvent = event;
+      this.element.classList.add('dragee-placeholder');
 
       if (event.clientX === 0 && event.clientY === 0) {
         return;
@@ -2162,16 +2192,19 @@ var Draggable = /*#__PURE__*/function (_EventEmitter) {
 
       this.touchPoint = new Point(event.clientX, event.clientY);
 
-      var point = this._startPosition.add(this.touchPoint.sub(this._startTouchPoint)).add(this.scrollPoint.sub(this._startScrollPoint));
+      var point = this._startPosition.add(this.touchPoint.sub(this._startTouchPoint)).add(this.windowScrollPoint.sub(this._startWindowScrollPoint)).add(this.parentsScrollPoint.sub(this._startParentsScrollPoint));
 
-      point = this.bound(point, this.getSize());
+      point = this.bounding.bound(point, this.getSize());
+      this.determineDirection(point);
       this.position = point;
       this.emit('drag:move');
     }
   }, {
     key: "nativeDragEnd",
     value: function nativeDragEnd(_event) {
-      removeClass(this.element, 'dragee-placeholder');
+      var _this5 = this;
+
+      this.element.classList.remove('dragee-placeholder');
       this.dragEndAction();
       this.emit('drag:end');
       document.removeEventListener('dragover', this._nativeDragOver);
@@ -2179,9 +2212,12 @@ var Draggable = /*#__PURE__*/function (_EventEmitter) {
       document.removeEventListener(mouseEvents.end, this._nativeDragEnd);
       document.removeEventListener('drop', this._nativeDrop);
       window.removeEventListener('scroll', this._scroll);
+      this.parents.forEach(function (p) {
+        return p.removeEventListener('scroll', _this5._scroll);
+      });
       this.isDragging = false;
       this.element.removeAttribute('draggable');
-      removeClass(this.element, 'dragee-active');
+      this.element.classList.remove('dragee-active');
     }
   }, {
     key: "nativeDrop",
@@ -2190,41 +2226,80 @@ var Draggable = /*#__PURE__*/function (_EventEmitter) {
       event.preventDefault();
     }
   }, {
+    key: "cancelDragging",
+    value: function cancelDragging() {
+      var _this6 = this;
+
+      document.removeEventListener(touchEvents.move, this._dragMove);
+      document.removeEventListener(mouseEvents.move, this._dragMove);
+      document.removeEventListener(touchEvents.end, this._dragEnd);
+      document.removeEventListener(mouseEvents.end, this._dragEnd);
+      document.removeEventListener(mouseEvents.end, this._nativeDragEnd);
+      window.removeEventListener('scroll', this._scroll);
+      this.parents.forEach(function (p) {
+        return p.removeEventListener('scroll', _this6._scroll);
+      });
+      this.isDragging = false;
+      this._previousDirectionPosition = null;
+      this.element.removeAttribute('draggable');
+    }
+  }, {
+    key: "copyStyles",
+    value: function copyStyles(source, destination) {
+      if (this.options.copyStyles) {
+        this.options.copyStyles(source, destination);
+      } else {
+        _copyStyles(source, destination);
+      }
+    }
+  }, {
     key: "emulateNativeDragAndDrop",
     value: function emulateNativeDragAndDrop(event) {
-      var _this3 = this;
+      var _this7 = this;
 
       var containerRect = this.container.getBoundingClientRect();
       var clonedElement = this.element.cloneNode(true);
       clonedElement.style[transformProperty] = '';
-      copyStyles(this.element, clonedElement);
+      this.copyStyles(this.element, clonedElement);
       clonedElement.style.position = 'absolute';
       document.body.appendChild(clonedElement);
-      addClass(this.element, 'dragee-placeholder');
+      this.element.classList.add('dragee-placeholder');
       var emulationDraggable = new Draggable(clonedElement, {
         container: document.body,
+        touchDraggingThreshold: 0,
         bound: function bound(point) {
           return point;
         },
         on: {
           'drag:move': function dragMove() {
             var containerRectPoint = new Point(containerRect.left, containerRect.top);
-            _this3.position = emulationDraggable.position.sub(containerRectPoint).sub(_this3._startScrollPoint);
+            _this7.position = emulationDraggable.position.sub(containerRectPoint).sub(_this7._startWindowScrollPoint).add(_this7._startParentsScrollPoint);
 
-            _this3.emit('drag:move');
+            _this7.determineDirection(_this7.position);
+
+            _this7.emit('drag:move');
           },
           'drag:end': function dragEnd() {
             emulationDraggable.destroy();
             document.body.removeChild(clonedElement);
-            removeClass(_this3.element, 'dragee-placeholder');
-            removeClass(_this3.element, 'dragee-active');
+
+            _this7.element.classList.remove('dragee-placeholder');
+
+            _this7.element.classList.remove('dragee-active');
+
+            _this7.emit('drag:end');
+
+            _this7.dragEndAction();
+
+            _this7.cancelDragging();
           }
         }
       });
       var containerRectPoint = new Point(containerRect.left, containerRect.top);
-      emulationDraggable._startScrollPoint = this._startScrollPoint;
-      emulationDraggable.move(this.pinnedPosition.add(containerRectPoint).add(new Point(window.scrollX, window.scrollY)));
+      emulationDraggable._startWindowScrollPoint = this._startWindowScrollPoint;
+      emulationDraggable.move(this.pinnedPosition.add(containerRectPoint).add(this.windowScrollPoint).sub(this.parentsScrollPoint));
       emulationDraggable.dragStart(event);
+      event.preventDefault();
     }
   }, {
     key: "dragEndAction",
@@ -2239,8 +2314,8 @@ var Draggable = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "refresh",
     value: function refresh() {
-      if (this.bound.refresh) {
-        this.bound.refresh();
+      if (this.bounding.refresh) {
+        this.bounding.refresh();
       }
     }
   }, {
@@ -2290,12 +2365,7 @@ var Draggable = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "emulateNativeDragAndDropOnTouch",
     get: function get() {
-      return this.options.emulateNativeDragAndDropOnTouch || true;
-    }
-  }, {
-    key: "emulateNativeDragAndDropForAll",
-    get: function get() {
-      return this.options.emulateNativeDragAndDropForAll || false;
+      return this.options.emulateNativeDragAndDropOnTouch || false;
     }
   }, {
     key: "shouldRemoveZeroTranslate",
@@ -2303,9 +2373,43 @@ var Draggable = /*#__PURE__*/function (_EventEmitter) {
       return this.options.shouldRemoveZeroTranslate || false;
     }
   }, {
-    key: "scrollPoint",
+    key: "touchDraggingThreshold",
+    get: function get() {
+      return this.options.touchDraggingThreshold || 0;
+    }
+  }, {
+    key: "dragOverThrottleDuration",
+    get: function get() {
+      return this.options.dragOverThrottleDuration || 16;
+    }
+  }, {
+    key: "windowScrollPoint",
     get: function get() {
       return new Point(window.scrollX, window.scrollY);
+    }
+  }, {
+    key: "parents",
+    get: function get() {
+      if (this._cachedParents) return this._cachedParents;
+      this._cachedParents = [];
+      var element = this.element;
+
+      while (element.parentNode && element != this.container) {
+        this._cachedParents.unshift(element.parentNode);
+
+        element = element.parentNode;
+      }
+
+      return this._cachedParents;
+    }
+  }, {
+    key: "parentsScrollPoint",
+    get: function get() {
+      return new Point(this.parents.reduce(function (sum, p) {
+        return sum + p.scrollLeft;
+      }, 0), this.parents.reduce(function (sum, p) {
+        return sum + p.scrollTop;
+      }, 0));
     }
   }, {
     key: "enable",
@@ -2314,39 +2418,92 @@ var Draggable = /*#__PURE__*/function (_EventEmitter) {
     },
     set: function set(enable) {
       if (enable) {
-        removeClass(this.element, 'dragee-disable');
+        this.element.classList.remove('dragee-disable');
       } else {
-        addClass(this.element, 'dragee-disable');
+        this.element.classList.add('dragee-disable');
       }
 
-      return this._enable = enable;
+      this._enable = enable;
     }
   }]);
 
   return Draggable;
-}(EventEmitter);
-Draggable.emitter = new EventEmitter();
-Draggable.emitter.on('draggable:create', addToDefaultScope$1);
+}(EventEmitter$1);
+Draggable.emitter = new EventEmitter$1();
+Draggable.emitter.on('draggable:create', addToDefaultScope);
 
-function getAngle$1(p1, p2) {
+var ResizeObserverBoxOptions;
+(function (ResizeObserverBoxOptions) {
+    ResizeObserverBoxOptions["BORDER_BOX"] = "border-box";
+    ResizeObserverBoxOptions["CONTENT_BOX"] = "content-box";
+    ResizeObserverBoxOptions["DEVICE_PIXEL_CONTENT_BOX"] = "device-pixel-content-box";
+})(ResizeObserverBoxOptions || (ResizeObserverBoxOptions = {}));
+
+var freeze = function (obj) { return Object.freeze(obj); };
+
+var ResizeObserverSize = (function () {
+    function ResizeObserverSize(inlineSize, blockSize) {
+        this.inlineSize = inlineSize;
+        this.blockSize = blockSize;
+        freeze(this);
+    }
+    return ResizeObserverSize;
+}());
+
+var DOMRectReadOnly = (function () {
+    function DOMRectReadOnly(x, y, width, height) {
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+        this.top = this.y;
+        this.left = this.x;
+        this.bottom = this.top + this.height;
+        this.right = this.left + this.width;
+        return freeze(this);
+    }
+    DOMRectReadOnly.prototype.toJSON = function () {
+        var _a = this, x = _a.x, y = _a.y, top = _a.top, right = _a.right, bottom = _a.bottom, left = _a.left, width = _a.width, height = _a.height;
+        return { x: x, y: y, top: top, right: right, bottom: bottom, left: left, width: width, height: height };
+    };
+    DOMRectReadOnly.fromRect = function (rectangle) {
+        return new DOMRectReadOnly(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
+    };
+    return DOMRectReadOnly;
+}());
+
+var global = typeof window !== 'undefined' ? window : {};
+(/msie|trident/i).test(global.navigator && global.navigator.userAgent);
+var size = function (inlineSize, blockSize, switchSizes) {
+    if (inlineSize === void 0) { inlineSize = 0; }
+    if (blockSize === void 0) { blockSize = 0; }
+    if (switchSizes === void 0) { switchSizes = false; }
+    return new ResizeObserverSize((switchSizes ? blockSize : inlineSize) || 0, (switchSizes ? inlineSize : blockSize) || 0);
+};
+freeze({
+    devicePixelContentBoxSize: size(),
+    borderBoxSize: size(),
+    contentBoxSize: size(),
+    contentRect: new DOMRectReadOnly(0, 0, 0, 0)
+});
+
+function getAngle(p1, p2) {
   var diff = p2.sub(p1);
-  return normalizeAngle$1(Math.atan2(diff.y, diff.x));
+  return normalizeAngle(Math.atan2(diff.y, diff.x));
 }
 function toRadian(angle) {
   return angle % 360 * Math.PI / 180;
 }
-function normalizeAngle$1(val) {
+function normalizeAngle(val) {
   while (val < 0) {
     val += 2 * Math.PI;
   }
-
   while (val > 2 * Math.PI) {
     val -= 2 * Math.PI;
   }
-
   return val;
 }
-function getPointFromRadialSystem$1(angle, length, center) {
+function getPointFromRadialSystem(angle, length, center) {
   center = center || new Point(0, 0);
   return center.add(new Point(length * Math.cos(angle), length * Math.sin(angle)));
 }
@@ -2354,9 +2511,7 @@ function getPointFromRadialSystem$1(angle, length, center) {
 var Spider = /*#__PURE__*/function () {
   function Spider(area, elements) {
     var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-
-    _classCallCheck(this, Spider);
-
+    _classCallCheck$1(this, Spider);
     var areaRectangle = Rectangle.fromElement(area, area);
     this.options = Object.assign({
       angle: 0,
@@ -2372,19 +2527,17 @@ var Spider = /*#__PURE__*/function () {
     this.areaRectangle = areaRectangle;
     this.init(elements);
   }
-
-  _createClass(Spider, [{
+  _createClass$1(Spider, [{
     key: "init",
     value: function init(elements) {
       var _this = this;
-
       this.canvas = createCanvas(this.area, this.areaRectangle);
       this.context = this.canvas.getContext('2d');
       this.draggables = elements.map(function (element, i) {
         var angle = _this.options.angle + i * _this.options.dAngle;
         var halfSize = Point.elementSize(element).mult(0.5);
-        var start = getPointFromRadialSystem$1(angle, _this.options.startRadius, _this.options.center).sub(halfSize);
-        var end = getPointFromRadialSystem$1(angle, _this.options.endRadius, _this.options.center).sub(halfSize);
+        var start = getPointFromRadialSystem(angle, _this.options.startRadius, _this.options.center).sub(halfSize);
+        var end = getPointFromRadialSystem(angle, _this.options.endRadius, _this.options.center).sub(halfSize);
         return new Draggable(element, {
           container: _this.area,
           bound: BoundToLine.bounding(start, end),
@@ -2405,17 +2558,14 @@ var Spider = /*#__PURE__*/function () {
       if (!this.isInit) {
         return;
       }
-
       this.context.clearRect(0, 0, this.areaRectangle.size.x, this.areaRectangle.size.y);
       this.context.beginPath();
       var point = this.draggables[0].getCenter();
       this.context.moveTo(point.x, point.y);
-
       for (var i = 0; i < this.draggables.length; i++) {
         point = this.draggables[i].getCenter();
         this.context.lineTo(point.x, point.y);
       }
-
       this.context.closePath();
       this.context.lineWidth = this.options.lineWidth;
       this.context.strokeStyle = this.options.strokeStyle;
@@ -2424,44 +2574,35 @@ var Spider = /*#__PURE__*/function () {
       this.context.fill();
     }
   }]);
-
   return Spider;
 }();
 
-var EventEmitter$1 = /*#__PURE__*/function () {
+var EventEmitter = /*#__PURE__*/function () {
   function EventEmitter() {
     var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-
-    _classCallCheck(this, EventEmitter);
-
+    _classCallCheck$1(this, EventEmitter);
     this.events = {};
-
     if (options && options.on) {
       for (var _i = 0, _Object$entries = Object.entries(options.on); _i < _Object$entries.length; _i++) {
-        var _Object$entries$_i = _slicedToArray(_Object$entries[_i], 2),
-            eventName = _Object$entries$_i[0],
-            fn = _Object$entries$_i[1];
-
+        var _Object$entries$_i = _slicedToArray$1(_Object$entries[_i], 2),
+          eventName = _Object$entries$_i[0],
+          fn = _Object$entries$_i[1];
         this.on(eventName, fn);
       }
     }
   }
-
-  _createClass(EventEmitter, [{
+  _createClass$1(EventEmitter, [{
     key: "emit",
     value: function emit(eventName) {
       this.interrupted = false;
       var args = [].slice.call(arguments, 1);
       if (!this.events[eventName]) return;
-
-      var _iterator = _createForOfIteratorHelper(this.events[eventName]),
-          _step;
-
+      var _iterator = _createForOfIteratorHelper$1(this.events[eventName]),
+        _step;
       try {
         for (_iterator.s(); !(_step = _iterator.n()).done;) {
           var func = _step.value;
-          func.apply.apply(func, _toConsumableArray(args));
-
+          func.apply.apply(func, _toConsumableArray$1(args));
           if (this.interrupted) {
             return;
           }
@@ -2483,7 +2624,6 @@ var EventEmitter$1 = /*#__PURE__*/function () {
       if (!this.events[eventName]) {
         this.events[eventName] = [];
       }
-
       this.events[eventName].push(fn);
     }
   }, {
@@ -2492,7 +2632,6 @@ var EventEmitter$1 = /*#__PURE__*/function () {
       if (!this.events[eventName]) {
         this.events[eventName] = [];
       }
-
       this.events[eventName].unshift(fn);
     }
   }, {
@@ -2514,22 +2653,16 @@ var EventEmitter$1 = /*#__PURE__*/function () {
       this.events[eventName] = [];
     }
   }]);
-
   return EventEmitter;
 }();
 
 var ArcSlider = /*#__PURE__*/function (_EventEmitter) {
-  _inherits(ArcSlider, _EventEmitter);
-
-  var _super = _createSuper(ArcSlider);
-
+  _inherits$1(ArcSlider, _EventEmitter);
+  var _super = _createSuper$1(ArcSlider);
   function ArcSlider(area, element) {
     var _this;
-
     var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-
-    _classCallCheck(this, ArcSlider);
-
+    _classCallCheck$1(this, ArcSlider);
     _this = _super.call(this, options);
     var areaRectangle = Rectangle.fromElement(area, area);
     _this.options = Object.assign({
@@ -2542,19 +2675,15 @@ var ArcSlider = /*#__PURE__*/function (_EventEmitter) {
     }, options);
     _this.shiftedCenter = _this.options.center;
     _this.area = area;
-
     _this.init(element);
-
     return _this;
   }
-
-  _createClass(ArcSlider, [{
+  _createClass$1(ArcSlider, [{
     key: "init",
     value: function init(element) {
       var _this2 = this;
-
       var angle = this.options.startAngle;
-      var position = getPointFromRadialSystem$1(angle, this.options.radius, this.shiftedCenter);
+      var position = getPointFromRadialSystem(angle, this.options.radius, this.shiftedCenter);
       this.angle = angle;
       this.draggable = new Draggable(element, {
         container: this.area,
@@ -2570,14 +2699,14 @@ var ArcSlider = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "updateAngle",
     value: function updateAngle() {
-      this.angle = getAngle$1(this.shiftedCenter, this.draggable.position);
+      this.angle = getAngle(this.shiftedCenter, this.draggable.position);
     }
   }, {
     key: "change",
     value: function change() {
-      this.updateAngle(); //      var angle = Geometry.getNearestAngle(this.options.angles, this.angle);
+      this.updateAngle();
+      //      var angle = Geometry.getNearestAngle(this.options.angles, this.angle);
       //      this.setAngle(angle,this.options.time);
-
       this.emit('arcslider:change', {
         angle: this.angle
       });
@@ -2585,80 +2714,61 @@ var ArcSlider = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "setAngle",
     value: function setAngle(angle, time) {
-      var position = getPointFromRadialSystem$1(this.angle, this.options.radius, this.shiftedCenter);
-      this.angle = normalizeAngle$1(angle);
+      var position = getPointFromRadialSystem(this.angle, this.options.radius, this.shiftedCenter);
+      this.angle = normalizeAngle(angle);
       this.draggable.pinPosition(position, time || 0);
       this.emit('arcslider:change', this.angle);
     }
   }]);
-
   return ArcSlider;
-}(EventEmitter$1);
+}(EventEmitter);
 
-function range$1(start, stop, step) {
+function range(start, stop, step) {
   var result = [];
-
   if (typeof stop === 'undefined') {
     stop = start;
     start = 0;
   }
-
   if (typeof step === 'undefined') {
     step = 1;
   }
-
   if (step > 0 && start >= stop || step < 0 && start <= stop) {
     return [];
   }
-
   for (var i = start; step > 0 ? i < stop : i > stop; i += step) {
     result.push(i);
   }
-
   return result;
 }
 
 var rnd = function rnd() {
   return Math.round(Math.random() * 255);
 };
-
 var toHexString = function toHexString(digit) {
   var str = digit.toString(16);
-
   while (str.length < 2) {
     str = '0' + str;
   }
-
   return str;
 };
-
 function randomColor() {
   return "#".concat(toHexString(rnd())).concat(toHexString(rnd())).concat(toHexString(rnd()));
 }
-
 function getArrayWithBoundIndexes(index, length) {
   var retIndexes = [];
-
   if (index !== -1) {
     retIndexes.push(index);
     retIndexes.push((index + 1) % length);
   }
-
   return retIndexes;
 }
-
 var Chart = /*#__PURE__*/function (_EventEmitter) {
-  _inherits(Chart, _EventEmitter);
-
-  var _super = _createSuper(Chart);
-
+  _inherits$1(Chart, _EventEmitter);
+  var _super = _createSuper$1(Chart);
   function Chart(area, elements) {
     var _this;
-
     var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-
-    _classCallCheck(this, Chart);
-
+    _classCallCheck$1(this, Chart);
     _this = _super.call(this, options);
     var areaRectangle = Rectangle.fromElement(area, area);
     _this.options = Object.assign({
@@ -2666,10 +2776,10 @@ var Chart = /*#__PURE__*/function (_EventEmitter) {
       radius: areaRectangle.getMinSide() / 2,
       touchRadius: areaRectangle.getMinSide() / 2,
       boundAngle: Math.PI / 9,
-      fillStyles: range$1(0, elements.length).map(function () {
+      fillStyles: range(0, elements.length).map(function () {
         return randomColor();
       }),
-      initAngles: range$1(-90, 270, 360 / elements.length).map(function (angle) {
+      initAngles: range(-90, 270, 360 / elements.length).map(function (angle) {
         return toRadian(angle);
       }),
       limitImg: null,
@@ -2677,23 +2787,19 @@ var Chart = /*#__PURE__*/function (_EventEmitter) {
     }, options);
     _this.area = area;
     _this.areaRectangle = areaRectangle;
-
     _this.init(elements);
-
     return _this;
   }
-
-  _createClass(Chart, [{
+  _createClass$1(Chart, [{
     key: "init",
     value: function init(elements) {
       var _this2 = this;
-
       this.canvas = createCanvas(this.area, this.areaRectangle);
       this.context = this.canvas.getContext('2d');
       this.draggables = elements.map(function (element, i) {
         var angle = _this2.options.initAngles[i];
         var halfSize = Point.elementSize(element).mult(0.5);
-        var position = getPointFromRadialSystem$1(angle, _this2.options.touchRadius, _this2.options.center.sub(halfSize));
+        var position = getPointFromRadialSystem(angle, _this2.options.touchRadius, _this2.options.center.sub(halfSize));
         return new Draggable(element, {
           container: _this2.area,
           bound: BoundToArc.bounding(_this2.options.center.sub(halfSize), _this2.options.touchRadius, _this2.getBoundAngle(i, false), _this2.getBoundAngle(i, true)),
@@ -2712,37 +2818,31 @@ var Chart = /*#__PURE__*/function (_EventEmitter) {
     key: "updateAngles",
     value: function updateAngles() {
       var _this3 = this;
-
       this.angles = this.draggables.map(function (draggable) {
         var halfSize = draggable.getSize().mult(0.5);
-        return getAngle$1(_this3.options.center.sub(halfSize), draggable.position);
+        return getAngle(_this3.options.center.sub(halfSize), draggable.position);
       });
     }
   }, {
     key: "getBoundAngle",
     value: function getBoundAngle(index, isClossing) {
       var _this4 = this;
-
       var sign = isClossing ? 1 : -1;
       return function () {
         var i = (index + sign) % _this4.angles.length;
-
         if (i < 0) {
           i += _this4.angles.length;
         }
-
-        return normalizeAngle$1(_this4.angles[i] - sign * _this4.options.boundAngle);
+        return normalizeAngle(_this4.angles[i] - sign * _this4.options.boundAngle);
       };
     }
   }, {
     key: "draw",
     value: function draw() {
       var _this5 = this;
-
       if (!this.isInit) {
         return;
       }
-
       this.updateAngles();
       this.context.clearRect(0, 0, this.areaRectangle.size.x, this.areaRectangle.size.y);
       this.draggables.forEach(function (_draggable, index) {
@@ -2757,13 +2857,10 @@ var Chart = /*#__PURE__*/function (_EventEmitter) {
     key: "createClone",
     value: function createClone(element) {
       var _this6 = this;
-
       var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
       if (!this.isInit) {
         return;
       }
-
       var rectangle = Rectangle.fromElement(element, element);
       var opts = Object.assign({
         center: rectangle.getCenter(),
@@ -2775,7 +2872,6 @@ var Chart = /*#__PURE__*/function (_EventEmitter) {
       var cloneObj = {
         draw: function draw() {
           context.clearRect(0, 0, rectangle.size.x, rectangle.size.y);
-
           _this6.draggables.forEach(function (_draggable, index) {
             _this6.drawArc(context, opts.center, opts.radius, index);
           });
@@ -2790,7 +2886,6 @@ var Chart = /*#__PURE__*/function (_EventEmitter) {
       if (typeof this.options.fillStyles[index] === 'function') {
         this.options.fillStyles[index] = this.options.fillStyles[index].call(this);
       }
-
       return this.options.fillStyles[index];
     }
   }, {
@@ -2811,13 +2906,11 @@ var Chart = /*#__PURE__*/function (_EventEmitter) {
     key: "drawLimitImg",
     value: function drawLimitImg(index) {
       var point, img;
-
       if (this.options.limitImg) {
         img = this.options.limitImg instanceof Array ? this.options.limitImg[index] : this.options.limitImg;
       }
-
       if (img) {
-        var angle = normalizeAngle$1(this.angles[index]);
+        var angle = normalizeAngle(this.angles[index]);
         point = new Point(0, -img.height / 2);
         point = point.add(this.options.limitImgOffset);
         this.context.translate(this.areaRectangle.size.x / 2, this.areaRectangle.size.y / 2);
@@ -2833,7 +2926,7 @@ var Chart = /*#__PURE__*/function (_EventEmitter) {
       var baseAngle = this.angles[0];
       angles.push(baseAngle);
       return angles.map(function (angle) {
-        var diffAngle = normalizeAngle$1(angle - baseAngle);
+        var diffAngle = normalizeAngle(angle - baseAngle);
         baseAngle = angle;
         return diffAngle;
       });
@@ -2849,53 +2942,45 @@ var Chart = /*#__PURE__*/function (_EventEmitter) {
     key: "getArcBisectrixs",
     value: function getArcBisectrixs() {
       var _this7 = this;
-
       return this.getAnglesDiff().map(function (diffAngle, i) {
-        return normalizeAngle$1(_this7.angles[i] + diffAngle / 2);
+        return normalizeAngle(_this7.angles[i] + diffAngle / 2);
       });
     }
   }, {
     key: "getArcOnPoint",
     value: function getArcOnPoint(point) {
-      var angle = getAngle$1(this.options.center, point);
+      var angle = getAngle(this.options.center, point);
       var radius = getDistance(this.options.center, point);
-
       if (radius > this.options.radius) {
         return -1;
       }
-
       var offset = -1,
-          i,
-          j;
-
+        i,
+        j;
       for (i = 0; i < this.angles.length; i++) {
         if (offset === -1 || this.angles[offset] > this.angles[i]) {
           offset = i;
         }
       }
-
       for (i = 0, j = offset; i < this.angles.length; i++, j = (i + offset) % this.angles.length) {
         if (angle < this.angles[j]) {
           break;
         }
       }
-
       if (--j < 0) {
         j += this.angles.length;
       }
-
       return j;
     }
   }, {
     key: "setAngles",
     value: function setAngles(angles) {
       var _this8 = this;
-
       this.angles = angles;
       this.draggables.forEach(function (draggable, i) {
         var angle = _this8.angles[i];
         var halfSize = draggable.getSize().mult(0.5);
-        var position = getPointFromRadialSystem$1(angle, _this8.options.touchRadius, _this8.options.center.sub(halfSize));
+        var position = getPointFromRadialSystem(angle, _this8.options.touchRadius, _this8.options.center.sub(halfSize));
         draggable.moveAndSave(position);
       });
       this.draw();
@@ -2911,8 +2996,7 @@ var Chart = /*#__PURE__*/function (_EventEmitter) {
       this.draw();
     }
   }]);
-
   return Chart;
-}(EventEmitter$1);
+}(EventEmitter);
 
 export { ArcSlider, Chart, Spider };
