@@ -1,22 +1,16 @@
-import babel from 'rollup-plugin-babel'
-import resolve from 'rollup-plugin-node-resolve'
-import commonjs from 'rollup-plugin-commonjs'
+import babel from '@rollup/plugin-babel'
 
-export default [{
+export default {
   input: 'src/index.js',
-  output: [
-    {
-      file: 'dist/index.dev.js',
-      format: 'iife',
-      name: 'DrageeWidgets',
-      sourcemap: 'inline'
-    }
-  ],
+  external: ['dragee'],
+  output: {
+    file: 'dist/index.dev.js',
+    format: 'iife',
+    name: 'DrageeWidgets',
+    globals: { dragee: 'Dragee' },
+    sourcemap: 'inline'
+  },
   plugins: [
-    babel({
-      exclude: 'node_modules/**'
-    }),
-    resolve(),
-    commonjs()
+    babel({ babelHelpers: 'bundled' })
   ]
-}]
+}

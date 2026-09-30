@@ -1,56 +1,30 @@
-import babel from 'rollup-plugin-babel'
-import resolve from 'rollup-plugin-node-resolve'
-import commonjs from 'rollup-plugin-commonjs'
-import { terser } from 'rollup-plugin-terser'
+import babel from '@rollup/plugin-babel'
+import terser from '@rollup/plugin-terser'
 
-export default [{
+export default {
   input: 'src/index.js',
+  external: ['dragee'],
   output: [
     {
       file: 'dist/index.esm.js',
-      format: 'esm',
-      name: 'dragee-widgets'
-    }
-  ],
-  plugins: [
-    babel({
-      exclude: 'node_modules/**'
-    }),
-    resolve(),
-    commonjs()
-  ]
-}, {
-  input: 'src/index.js',
-  output: [
+      format: 'esm'
+    },
     {
       file: 'dist/index.min.js',
       format: 'iife',
-      name: 'DrageeWidgets'
-    }
-  ],
-  plugins: [
-    babel({
-      exclude: 'node_modules/**'
-    }),
-    resolve(),
-    commonjs(),
-    terser()
-  ]
-}, {
-  input: 'src/index.js',
-  output: [
+      name: 'DrageeWidgets',
+      globals: { dragee: 'Dragee' },
+      plugins: [terser()]
+    },
     {
       file: 'dist/index.umd.js',
       format: 'umd',
-      name: 'DrageeWidgets'
+      name: 'DrageeWidgets',
+      globals: { dragee: 'Dragee' },
+      plugins: [terser()]
     }
   ],
   plugins: [
-    babel({
-      exclude: 'node_modules/**'
-    }),
-    resolve(),
-    commonjs(),
-    terser()
+    babel({ babelHelpers: 'bundled' })
   ]
-}]
+}
