@@ -33,6 +33,83 @@ function createCanvas(area, rectagle) {
   return canvas;
 }
 
+class DrageeEvent extends CustomEvent {
+  constructor(type, detail, options = {}) {
+    super(type, {
+      ...options,
+      detail
+    });
+    Object.assign(this, detail);
+  }
+  cancel() {
+    this.preventDefault();
+  }
+  get canceled() {
+    return this.defaultPrevented;
+  }
+}
+
+function dispatchDomEvent(element, eventName, detail, {
+  cancelable = false
+} = {}) {
+  const event = new DrageeEvent(eventName, detail, {
+    bubbles: true,
+    cancelable
+  });
+  element.dispatchEvent(event);
+  return event;
+}
+
+class EventEmitter extends EventTarget {
+  constructor(options = {}) {
+    super();
+    this.options = options;
+    if (options && options.on) {
+      Object.entries(options.on).forEach(([eventName, fn]) => this.on(eventName, fn));
+    }
+  }
+  emit(eventName, detail, {
+    cancelable = false
+  } = {}) {
+    const event = new DrageeEvent(eventName, detail, {
+      cancelable
+    });
+    this.dispatchEvent(event);
+    return event;
+  }
+  emitWithDomEvent(element, eventName, domEventName, detail, {
+    cancelable = false
+  } = {}) {
+    const event = this.emit(eventName, detail, {
+      cancelable
+    });
+    if (this.domEvents && dispatchDomEvent(element, domEventName, detail, {
+      cancelable
+    }).canceled) {
+      event.cancel();
+    }
+    return event;
+  }
+  on(eventName, fn, options) {
+    this.addEventListener(eventName, fn, options);
+    return () => this.off(eventName, fn);
+  }
+  once(eventName, fn) {
+    return this.on(eventName, fn, {
+      once: true
+    });
+  }
+  off(eventName, fn) {
+    this.removeEventListener(eventName, fn);
+  }
+  unsubscribe(eventName, fn) {
+    this.off(eventName, fn);
+  }
+  get domEvents() {
+    return this.options?.domEvents !== false;
+  }
+}
+
 /** Class representing a point. */
 class Point {
   /**
@@ -63,9 +140,13 @@ class Point {
     return new Point(this.x, this.y);
   }
   toString() {
-    return `{x=${this.x},y=${this.y}`;
+    return `{x=${this.x},y=${this.y}}`;
   }
   static elementOffset(element, parent) {
+    parent = parent || element.parentNode;
+    return layoutPosition(element).sub(layoutPosition(parent));
+  }
+  static elementBoundingOffset(element, parent) {
     parent = parent || element.parentNode;
     const elementRect = element.getBoundingClientRect();
     const parentRect = parent.getBoundingClientRect();
@@ -75,6 +156,11 @@ class Point {
     const elementRect = element.getBoundingClientRect();
     return new Point(elementRect.width, elementRect.height);
   }
+}
+function layoutPosition(element) {
+  const position = new Point(element.offsetLeft, element.offsetTop);
+  const offsetParent = element.offsetParent;
+  return offsetParent ? position.add(new Point(offsetParent.clientLeft, offsetParent.clientTop)).add(layoutPosition(offsetParent)) : position;
 }
 
 class Rectangle {
@@ -151,104 +237,691 @@ class Rectangle {
   getMinSide() {
     return Math.min(this.size.x, this.size.y);
   }
-  static fromElement(element) {
-    let parent = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : element.parentNode;
-    let isConsiderTranslate = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
-    const position = Point.elementOffset(element, parent, isConsiderTranslate);
+  static fromElement(element, parent = element.parentNode, isConsiderTranslate = false) {
+    const position = isConsiderTranslate ? Point.elementBoundingOffset(element, parent) : Point.elementOffset(element, parent);
     const size = Point.elementSize(element);
     return new Rectangle(position, size);
   }
 }
 
-function getDefaultContainer(element) {
-  let container = element.parentNode;
-  while (container.parentNode && window.getComputedStyle(container)['position'] === 'static' && container.tagName !== 'BODY') {
-    container = container.parentNode;
-  }
-  return container;
-}
-
-let EventEmitter$1 = class EventEmitter {
-  constructor() {
-    let options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-    this.events = {};
-    if (options && options.on) {
-      for (const [eventName, fn] of Object.entries(options.on)) {
-        this.on(eventName, fn);
-      }
+function removeItem (array, val) {
+  for (let i = 0; i < array.length; i++) {
+    if (array[i] === val) {
+      array.splice(i, 1);
+      i--;
     }
   }
-  emit(eventName) {
-    this.interrupted = false;
-    const args = [].slice.call(arguments, 1);
-    if (!this.events[eventName]) return;
-    for (const func of this.events[eventName]) {
-      func(...args);
-      if (this.interrupted) {
+  return array;
+}
+
+const scopes = [];
+const scopeStack = [];
+class Scope extends EventEmitter {
+  constructor(draggables, trays, options = {}) {
+    super(options);
+    scopes.forEach(scope => {
+      if (draggables) {
+        draggables.forEach(draggable => scope.releaseDraggable(draggable));
+      }
+      if (trays) {
+        trays.forEach(tray => scope.releaseTray(tray));
+      }
+    });
+    this.draggables = draggables || [];
+    this.trays = trays || [];
+    this.unsubscribes = new Map();
+    scopes.push(this);
+    this.options = {
+      timeEnd: options.timeEnd || 400
+    };
+    this.init();
+  }
+  init() {
+    this.draggables.forEach(draggable => this.initDraggable(draggable));
+  }
+  addDraggable(draggable) {
+    scopes.forEach(scope => scope.releaseDraggable(draggable));
+    this.draggables.push(draggable);
+    this.initDraggable(draggable);
+  }
+  initDraggable(draggable) {
+    this.unsubscribes.set(draggable, draggable.on('drag:release', event => {
+      if (!event.canceled && this.onRelease(draggable)) {
+        event.cancel();
+      }
+    }));
+  }
+  releaseDraggable(draggable) {
+    this.unsubscribes.get(draggable)?.();
+    this.unsubscribes.delete(draggable);
+    removeItem(this.draggables, draggable);
+  }
+  addTray(tray) {
+    scopes.forEach(scope => scope.releaseTray(tray));
+    this.trays.push(tray);
+  }
+  releaseTray(tray) {
+    removeItem(this.trays, tray);
+  }
+  onRelease(draggable) {
+    if (!draggable.trays.length) return false;
+    const shotTrays = this.trays.filter(tray => {
+      return tray.draggables.indexOf(draggable) !== -1;
+    }).filter(tray => {
+      return tray.catchDraggable(draggable);
+    }).sort((a, b) => {
+      return a.getRectangle().getSquare() - b.getRectangle().getSquare();
+    });
+    const isAccepted = shotTrays.length > 0 && shotTrays[0].drop(draggable);
+    if (!isAccepted) {
+      draggable.pinPosition(draggable.initialPosition, {
+        duration: this.options.timeEnd
+      });
+    }
+    this.emit('scope:change', {
+      scope: this,
+      draggable
+    });
+    return true;
+  }
+  reset() {
+    this.trays.forEach(tray => tray.reset());
+  }
+  refresh() {
+    this.draggables.forEach(draggable => draggable.refresh());
+    this.trays.forEach(tray => tray.refresh());
+  }
+  get positions() {
+    return this.trays.map(tray => {
+      return tray.innerDraggables.map(draggable => this.draggables.indexOf(draggable));
+    });
+  }
+  set positions(positions) {
+    if (positions.length === this.trays.length) {
+      this.trays.forEach(tray => tray.reset());
+      positions.forEach((trayIndexes, i) => {
+        trayIndexes.forEach(index => {
+          this.trays[i].add(this.draggables[index]);
+        });
+      });
+    } else {
+      throw new RangeError(`Expected ${this.trays.length} positions, got ${positions.length}`);
+    }
+  }
+}
+const defaultScope = new Scope();
+function currentScope() {
+  return scopeStack[scopeStack.length - 1] || defaultScope;
+}
+
+function throttle(func, wait) {
+  let lastTime = 0;
+  return function executedFunction() {
+    const context = this;
+    const args = arguments;
+    const now = Date.now();
+    if (now - lastTime >= wait) {
+      func.apply(context, args);
+      lastTime = now;
+    }
+  };
+}
+
+function getParentsChain(childElement, rootElement) {
+  const chain = [];
+  let element = childElement;
+  while (element.parentNode && element !== rootElement) {
+    chain.unshift(element.parentNode);
+    element = element.parentNode;
+  }
+  return chain;
+}
+
+const throttledDragOver = (callback, duration) => {
+  const throttledCallback = throttle(event => callback(event), duration);
+  return event => {
+    event.preventDefault();
+    throttledCallback(event);
+  };
+};
+const formFieldSelector = 'input, textarea, select, [contenteditable]:not([contenteditable="false"])';
+const isTouch = navigator.maxTouchPoints > 0;
+const mouseEvents = {
+  start: 'mousedown',
+  move: 'mousemove',
+  end: 'mouseup'
+};
+const touchEvents = {
+  start: 'touchstart',
+  move: 'touchmove',
+  end: 'touchend'
+};
+const draggables = [];
+const startEvents = new WeakSet();
+const transformProperty = 'transform';
+const transitionProperty = 'transition';
+function getTouchByID(element, touchId) {
+  for (let i = 0; i < element.changedTouches.length; i++) {
+    if (element.changedTouches[i].identifier === touchId) {
+      return element.changedTouches[i];
+    }
+  }
+  return false;
+}
+function preventDoubleInit(draggable) {
+  if (draggables.some(existing => draggable.element === existing.element)) {
+    throw new Error('A Draggable already exists for this element');
+  }
+  draggables.push(draggable);
+}
+function copyStyles(source, destination) {
+  const cs = window.getComputedStyle(source);
+  for (let i = 0; i < cs.length; i++) {
+    const key = cs[i];
+    if (key.indexOf('transition') < 0 && key.indexOf('transform') < 0) {
+      destination.style[key] = cs[key];
+    }
+  }
+  for (let i = 0; i < source.children.length; i++) {
+    copyStyles(source.children[i], destination.children[i]);
+  }
+}
+class Draggable extends EventEmitter {
+  constructor(element, options = {}) {
+    super(options);
+    this.trays = [];
+    this.options = options;
+    this.element = element;
+    preventDoubleInit(this);
+    const scope = options.scope || currentScope();
+    scope.addDraggable(this);
+    this._enable = true;
+    this.startBounding();
+    this.startPositioning();
+    this.startListening();
+  }
+  startBounding() {
+    this.bounding = this.options.bounding || {
+      bound: this.options.bound || (point => point)
+    };
+  }
+  startPositioning() {
+    this._setDefaultTransition();
+    this.offset = this.measureOffset();
+    this.pinnedPosition = this.offset;
+    this.position = this.offset;
+    this.initialPosition = this.options.position || this.offset;
+    this.pinPosition(this.initialPosition);
+    this.refresh();
+  }
+  remeasure() {
+    const isAtInitialPosition = this.position.compare(this.initialPosition);
+    this.offset = this.measureOffset();
+    this.initialPosition = this.options.position || this.offset;
+    if (isAtInitialPosition) {
+      this.pinPosition(this.initialPosition);
+    } else {
+      this.setPosition(this.position);
+    }
+    this.refresh();
+  }
+  measureOffset() {
+    return this.isConsiderTransformOffset ? Point.elementBoundingOffset(this.element, this.container).sub(this._transformPosition || new Point(0, 0)) : Point.elementOffset(this.element, this.container);
+  }
+  startListening() {
+    this.listeners = new AbortController();
+    const options = {
+      passive: false,
+      signal: this.listeners.signal
+    };
+    this.handler.addEventListener(touchEvents.start, event => this.dragStart(event), options);
+    this.handler.addEventListener(mouseEvents.start, event => this.dragStart(event), options);
+  }
+  getSize() {
+    return Point.elementSize(this.element);
+  }
+  getPosition() {
+    this.position = this.offset.add(this._transformPosition || new Point(0, 0));
+    return this.position;
+  }
+  getCenter() {
+    return this.position.add(this.getSize().mult(0.5));
+  }
+  _setDefaultTransition() {
+    if (!this.element.style[transitionProperty]) {
+      this.element.style[transitionProperty] = window.getComputedStyle(this.element)[transitionProperty];
+    }
+  }
+  _setTransition(time) {
+    let transition = this.element.style[transitionProperty];
+    const transitionCss = `transform ${time}ms`;
+    if (!/transform\s?\d*m?s?/.test(transition)) {
+      if (transition) {
+        transition += `, ${transitionCss}`;
+      } else {
+        transition = transitionCss;
+      }
+    } else {
+      transition = transition.replace(/transform\s?\d*m?s?/g, transitionCss);
+    }
+    if (this.element.style[transitionProperty] !== transition) {
+      this.element.style[transitionProperty] = transition;
+    }
+  }
+  _setTranslate(point) {
+    this._transformPosition = point;
+    const translateCss = `translate3d(${point.x}px, ${point.y}px, 0px)`;
+    let transform = this.element.style[transformProperty];
+    if (this.shouldRemoveZeroTranslate && point.x === 0 && point.y === 0) {
+      transform = transform.replace(/translate3d\([^)]+\)/, '');
+    } else if (!/translate3d\([^)]+\)/.test(transform)) {
+      if (transform) {
+        transform += ' ';
+      }
+      transform += translateCss;
+    } else {
+      transform = transform.replace(/translate3d\([^)]+\)/, translateCss);
+    }
+    if (this.element.style[transformProperty] !== transform) {
+      this.element.style[transformProperty] = transform;
+    }
+  }
+  move(point, {
+    duration = 0,
+    silent = false
+  } = {}) {
+    point = point.clone();
+    this.position = point;
+    this._setTransition(duration);
+    this._setTranslate(point.sub(this.offset));
+    if (!silent) {
+      this.emitDragEvent('move');
+    }
+  }
+  pinPosition(point, {
+    duration = 0,
+    silent = true
+  } = {}) {
+    this.pinnedPosition = point.clone();
+    this.move(this.pinnedPosition, {
+      duration,
+      silent
+    });
+  }
+  resetPositionToInitial() {
+    this.pinPosition(this.initialPosition);
+  }
+  refreshPosition() {
+    this.setPosition(this.getPosition());
+  }
+  setPosition(point) {
+    point = point.clone();
+    this.position = point;
+    this._setTransition(0);
+    this._setTranslate(point.sub(this.offset));
+  }
+  determineDirection(point) {
+    this._previousDirectionPosition ||= this._startPosition;
+    this.leftDirection = this._previousDirectionPosition.x > point.x;
+    this.rightDirection = this._previousDirectionPosition.x < point.x;
+    this.upDirection = this._previousDirectionPosition.y > point.y;
+    this.downDirection = this._previousDirectionPosition.y < point.y;
+    this._previousDirectionPosition = point;
+  }
+  isFormField(target) {
+    const field = target instanceof window.Element && target.closest(formFieldSelector);
+    return Boolean(field) && this.element.contains(field);
+  }
+  seemsScrolling() {
+    return +new Date() - this._startTouchTimestamp < this.touchDraggingThreshold;
+  }
+  shouldUseNativeDragAndDrop() {
+    if (this.isTouchEvent) {
+      return this.nativeDragAndDrop && this.emulateNativeDragAndDropOnTouch;
+    } else {
+      return this.nativeDragAndDrop;
+    }
+  }
+  dragStart(event) {
+    if (!this._enable || this.isFormField(event.target) || startEvents.has(event)) {
+      return;
+    }
+    startEvents.add(event);
+    if (this.stopPropagationOnDragStart) {
+      event.stopPropagation();
+    }
+    this.isTouchEvent = isTouch && event instanceof window.TouchEvent;
+    this.touchPoint = this._startTouchPoint = new Point(this.isTouchEvent ? event.changedTouches[0].pageX : event.clientX, this.isTouchEvent ? event.changedTouches[0].pageY : event.clientY);
+    this._startPosition = this.getPosition();
+    if (this.isTouchEvent) {
+      this._touchId = event.changedTouches[0].identifier;
+      this._startTouchTimestamp = +new Date();
+    }
+    this._startWindowScrollPoint = this.windowScrollPoint;
+    this._startScrollElementsOffset = this.scrollElementsOffset;
+    this.dragListeners?.abort();
+    const {
+      signal
+    } = this.dragListeners = new AbortController();
+    const options = {
+      passive: false,
+      signal
+    };
+    this._dragStartPending = !this.shouldUseNativeDragAndDrop() && this.dragStartThreshold > 0;
+    if (!this._dragStartPending) {
+      const startEvent = this.emitDragEvent('start', {
+        cancelable: true
+      });
+      if (startEvent.canceled || signal.aborted) {
         return;
       }
     }
-  }
-  interrupt() {
-    this.interrupted = true;
-  }
-  on(eventName, fn) {
-    if (!this.events[eventName]) {
-      this.events[eventName] = [];
+    if (this.shouldUseNativeDragAndDrop()) {
+      if (this.isTouchEvent && this.emulateNativeDragAndDropOnTouch) {
+        this._startParentsScrollOffset = this.parentsScrollOffset;
+        const emulateOnFirstMove = event => {
+          if (this.seemsScrolling()) {
+            this.cancelDragging();
+          } else {
+            this.emulateNativeDragAndDrop(event);
+          }
+          cancelEmulation();
+        };
+        const cancelEmulation = () => {
+          document.removeEventListener(touchEvents.move, emulateOnFirstMove);
+          document.removeEventListener(touchEvents.end, cancelEmulation);
+        };
+        document.addEventListener(touchEvents.move, emulateOnFirstMove, options);
+        document.addEventListener(touchEvents.end, cancelEmulation, options);
+      } else {
+        this.element.addEventListener('dragstart', event => this.nativeDragStart(event), {
+          signal
+        });
+        this.element.draggable = true;
+        document.addEventListener(mouseEvents.end, event => this.nativeDragEnd(event), options);
+      }
+    } else {
+      const dragMove = event => this.dragMove(event);
+      const dragEnd = event => this.dragEnd(event);
+      document.addEventListener(touchEvents.move, dragMove, options);
+      document.addEventListener(mouseEvents.move, dragMove, options);
+      document.addEventListener(touchEvents.end, dragEnd, options);
+      document.addEventListener(mouseEvents.end, dragEnd, options);
     }
-    this.events[eventName].push(fn);
+    const onScroll = event => this.onScroll(event);
+    window.addEventListener('scroll', onScroll, {
+      signal
+    });
+    this.scrollElements.forEach(p => p.addEventListener('scroll', onScroll, {
+      signal
+    }));
   }
-  prependOn(eventName, fn) {
-    if (!this.events[eventName]) {
-      this.events[eventName] = [];
+  dragMove(event) {
+    let touch;
+    this.isTouchEvent = isTouch && event instanceof window.TouchEvent;
+    if (this.isTouchEvent) {
+      touch = getTouchByID(event, this._touchId);
+      if (!touch) {
+        return;
+      }
+      if (this.seemsScrolling()) {
+        this.cancelDragging();
+        return;
+      }
     }
-    this.events[eventName].unshift(fn);
+    this.touchPoint = new Point(this.isTouchEvent ? touch.pageX : event.clientX, this.isTouchEvent ? touch.pageY : event.clientY);
+    if (this._dragStartPending) {
+      const dx = this.touchPoint.x - this._startTouchPoint.x;
+      const dy = this.touchPoint.y - this._startTouchPoint.y;
+      if (Math.sqrt(dx * dx + dy * dy) < this.dragStartThreshold) {
+        return;
+      }
+      this._dragStartPending = false;
+      const startEvent = this.emitDragEvent('start', {
+        cancelable: true
+      });
+      if (startEvent.canceled || this.dragListeners.signal.aborted) {
+        this.cancelDragging();
+        return;
+      }
+    }
+    this.isDragging = true;
+    event.stopPropagation();
+    event.preventDefault();
+    let point = this._startPosition.add(this.touchPoint.sub(this._startTouchPoint)).add(this.windowScrollPoint.sub(this._startWindowScrollPoint)).add(this.scrollElementsOffset.sub(this._startScrollElementsOffset));
+    point = this.bounding.bound(point, this.getSize());
+    this.determineDirection(point);
+    this.move(point);
+    this.element.classList.add('dragee-active');
   }
-  unsubscribe(eventName, fn) {
-    if (this.events[eventName]) {
-      const index = this.events[eventName].indexOf(fn);
-      this.events[eventName].splice(index, 1);
+  dragEnd(event) {
+    this.isTouchEvent = isTouch && event instanceof window.TouchEvent;
+    if (this.isTouchEvent && !getTouchByID(event, this._touchId)) {
+      return;
+    }
+    if (this._dragStartPending) {
+      // threshold never crossed — treat as click, clean up silently
+      this._dragStartPending = false;
+      this.cancelDragging();
+      return;
+    }
+    if (this.isDragging) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
+    this.release();
+    this.emitDragEvent('end');
+    this.cancelDragging();
+    setTimeout(() => this.element.classList.remove('dragee-active'));
+  }
+  onScroll(_event) {
+    let point = this._startPosition.add(this.touchPoint.sub(this._startTouchPoint)).add(this.windowScrollPoint.sub(this._startWindowScrollPoint)).add(this.scrollElementsOffset.sub(this._startScrollElementsOffset));
+    point = this.bounding.bound(point, this.getSize());
+    if (!this.nativeDragAndDrop) {
+      this.determineDirection(point);
+      this.move(point);
     }
   }
-  resetEmitter() {
-    this.events = {};
+  nativeDragStart(event) {
+    event.stopPropagation();
+    event.dataTransfer.setData('text', 'FireFox fix');
+    event.dataTransfer.effectAllowed = 'move';
+    const {
+      signal
+    } = this.dragListeners;
+    document.addEventListener('dragover', throttledDragOver(event => this.nativeDragOver(event), this.dragOverThrottleDuration), {
+      signal
+    });
+    document.addEventListener('dragend', event => this.nativeDragEnd(event), {
+      signal
+    });
+    document.addEventListener('drop', event => this.nativeDrop(event), {
+      signal
+    });
   }
-  resetOn(eventName) {
-    this.events[eventName] = [];
+  nativeDragOver(event) {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+    this.element.classList.add('dragee-placeholder');
+    if (event.clientX === 0 && event.clientY === 0) {
+      return;
+    }
+    this.touchPoint = new Point(event.clientX, event.clientY);
+    let point = this._startPosition.add(this.touchPoint.sub(this._startTouchPoint)).add(this.windowScrollPoint.sub(this._startWindowScrollPoint)).add(this.scrollElementsOffset.sub(this._startScrollElementsOffset));
+    point = this.bounding.bound(point, this.getSize());
+    this.determineDirection(point);
+    this.position = point;
+    this.emitDragEvent('move');
   }
-};
+  nativeDragEnd(_event) {
+    this.element.classList.remove('dragee-placeholder');
+    this.release();
+    this.emitDragEvent('end');
+    this.dragListeners.abort();
+    this.isDragging = false;
+    this.element.removeAttribute('draggable');
+    this.element.classList.remove('dragee-active');
+  }
+  nativeDrop(event) {
+    event.stopPropagation();
+    event.preventDefault();
+  }
+  cancelDragging() {
+    this.dragListeners?.abort();
+    this.isDragging = false;
+    this._previousDirectionPosition = null;
+    this.element.removeAttribute('draggable');
+  }
+  copyStyles(source, destination) {
+    if (this.options.copyStyles) {
+      this.options.copyStyles(source, destination);
+    } else {
+      copyStyles(source, destination);
+    }
+  }
+  emulateNativeDragAndDrop(event) {
+    const containerRect = this.container.getBoundingClientRect();
+    const clonedElement = this.element.cloneNode(true);
+    clonedElement.style[transformProperty] = '';
+    this.copyStyles(this.element, clonedElement);
+    clonedElement.classList.add('dragee-native-emulation');
+    clonedElement.style.position = 'absolute';
+    document.body.appendChild(clonedElement);
+    this.element.classList.add('dragee-placeholder');
+    const emulationDraggable = new Draggable(clonedElement, {
+      container: document.body,
+      touchDraggingThreshold: 0,
+      domEvents: false,
+      bound(point) {
+        return point;
+      },
+      on: {
+        'drag:move': () => {
+          const containerRectPoint = new Point(containerRect.left, containerRect.top);
+          this.position = emulationDraggable.position.sub(containerRectPoint).sub(this._startWindowScrollPoint).add(this._startParentsScrollOffset);
+          this.determineDirection(this.position);
+          this.emitDragEvent('move');
+        },
+        'drag:end': () => {
+          emulationDraggable.destroy();
+          document.body.removeChild(clonedElement);
+          this.element.classList.remove('dragee-placeholder');
+          this.element.classList.remove('dragee-active');
+          this.release();
+          this.emitDragEvent('end');
+          this.cancelDragging();
+        }
+      }
+    });
+    const containerRectPoint = new Point(containerRect.left, containerRect.top);
+    emulationDraggable._startWindowScrollPoint = this._startWindowScrollPoint;
+    emulationDraggable.move(this.pinnedPosition.add(containerRectPoint).add(this.windowScrollPoint).sub(this.parentsScrollOffset));
+    emulationDraggable.dragStart(event);
+    event.preventDefault();
+  }
+  emitDragEvent(type, options) {
+    return this.emitWithDomEvent(this.element, `drag:${type}`, `dragee:${type}`, {
+      draggable: this
+    }, options);
+  }
+  release() {
+    const releaseEvent = this.emitDragEvent('release', {
+      cancelable: true
+    });
+    if (!releaseEvent.canceled) {
+      this.pinPosition(this.position);
+    }
+  }
+  getRectangle() {
+    return new Rectangle(this.position, this.getSize());
+  }
+  refresh() {
+    if (this.bounding.refresh) {
+      this.bounding.refresh();
+    }
+  }
+  destroy() {
+    this.listeners.abort();
+    this.dragListeners?.abort();
+    scopes.forEach(scope => scope.releaseDraggable(this));
+    this.trays.slice().forEach(tray => tray.releaseDraggable(this));
+    const index = draggables.indexOf(this);
+    if (index > -1) {
+      draggables.splice(index, 1);
+    }
+  }
+  get container() {
+    return this._container = this._container || this.options.container || this.options.parent || this.element.offsetParent;
+  }
+  get handler() {
+    if (!this._handler) {
+      if (typeof this.options.handler === 'string') {
+        this._handler = this.element.querySelector(this.options.handler) || this.element;
+      } else {
+        this._handler = this.options.handler || this.element;
+      }
+    }
+    return this._handler;
+  }
+  get stopPropagationOnDragStart() {
+    return this.options.stopPropagationOnDragStart || false;
+  }
+  get nativeDragAndDrop() {
+    return this.options.nativeDragAndDrop || false;
+  }
+  get emulateNativeDragAndDropOnTouch() {
+    return this.options.emulateNativeDragAndDropOnTouch || false;
+  }
+  get shouldRemoveZeroTranslate() {
+    return this.options.shouldRemoveZeroTranslate || false;
+  }
+  get touchDraggingThreshold() {
+    return this.options.touchDraggingThreshold || 0;
+  }
+  get dragStartThreshold() {
+    return this.options.dragStartThreshold || 0;
+  }
+  get dragOverThrottleDuration() {
+    return this.options.dragOverThrottleDuration || 16;
+  }
+  get isConsiderTransformOffset() {
+    return this.options.considerTransformOffset || false;
+  }
+  get windowScrollPoint() {
+    return new Point(window.scrollX, window.scrollY);
+  }
+  get scrollRootContainer() {
+    return this.options.scrollRootContainer || this.container;
+  }
+  get scrollElements() {
+    return this._cachedScrollElements ? this._cachedScrollElements : this._cachedScrollElements = getParentsChain(this.element, this.scrollRootContainer);
+  }
+  get scrollElementsOffset() {
+    return new Point(this.scrollElements.reduce((sum, p) => sum + p.scrollLeft, 0), this.scrollElements.reduce((sum, p) => sum + p.scrollTop, 0));
+  }
+  get parents() {
+    return this._cachedParents ? this._cachedParents : this._cachedParents = getParentsChain(this.element, this.container);
+  }
+  get parentsScrollOffset() {
+    return new Point(this.parents.reduce((sum, p) => sum + p.scrollLeft, 0), this.parents.reduce((sum, p) => sum + p.scrollTop, 0));
+  }
+  get enable() {
+    return this._enable;
+  }
+  set enable(enable) {
+    if (enable) {
+      this.element.classList.remove('dragee-disable');
+    } else {
+      this.element.classList.add('dragee-disable');
+    }
+    this._enable = enable;
+  }
+}
 
 function getDistance(p1, p2) {
   const dx = p1.x - p2.x,
     dy = p1.y - p2.y;
   return Math.sqrt(dx * dx + dy * dy);
-}
-function transformedSpaceDistanceFactory(options) {
-  return (p1, p2) => {
-    return Math.sqrt(Math.pow(options.x * Math.abs(p1.x - p2.x), 2) + Math.pow(options.y * Math.abs(p1.y - p2.y), 2));
-  };
-}
-function indexOfNearestPoint(arr, val, radius) {
-  let getDistanceFunc = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : getDistance;
-  let size,
-    index = 0,
-    i,
-    temp;
-  if (arr.length === 0) {
-    return -1;
-  }
-  size = getDistanceFunc(arr[0], val);
-  for (i = 0; i < arr.length; i++) {
-    temp = getDistanceFunc(arr[i], val);
-    if (temp < size) {
-      size = temp;
-      index = i;
-    }
-  }
-  if (radius >= 0 && size > radius) {
-    return -1;
-  }
-  return index;
 }
 
 //Return crossing point of two lines
@@ -291,19 +964,6 @@ function getPointOnLineByLenght(LP1, LP2, lenght) {
   const dy = LP2.y - LP1.y;
   const percent = lenght / getDistance(LP1, LP2);
   return new Point(LP1.x + percent * dx, LP1.y + percent * dy);
-}
-function addPointToBoundPoints(boundpoints, point, isRight) {
-  const result = boundpoints.filter(bPoint => {
-    return bPoint.y > point.y || (bPoint.x > point.x);
-  });
-  for (let i = 0; i < result.length; i++) {
-    if (point.y < result[i].y) {
-      result.splice(i, 0, point);
-      return result;
-    }
-  }
-  result.push(point);
-  return result;
 }
 
 function getAngleDiff(alpha, beta) {
@@ -356,39 +1016,6 @@ class Bound {
     return instance.bound.bind(instance);
   }
 }
-class BoundToRectangle extends Bound {
-  constructor(rectangle) {
-    super();
-    this.rectangle = rectangle;
-  }
-  bound(point, size) {
-    const calcPoint = point.clone();
-    const rectP2 = this.rectangle.getP3();
-    if (this.rectangle.position.x > calcPoint.x) {
-      calcPoint.x = this.rectangle.position.x;
-    }
-    if (this.rectangle.position.y > calcPoint.y) {
-      calcPoint.y = this.rectangle.position.y;
-    }
-    if (rectP2.x < calcPoint.x + size.x) {
-      calcPoint.x = rectP2.x - size.x;
-    }
-    if (rectP2.y < calcPoint.y + size.y) {
-      calcPoint.y = rectP2.y - size.y;
-    }
-    return calcPoint;
-  }
-}
-class BoundToElement extends BoundToRectangle {
-  constructor(element, container) {
-    super(Rectangle.fromElement(element, container));
-    this.element = element;
-    this.container = container;
-  }
-  refresh() {
-    this.rectangle = Rectangle.fromElement(this.element, this.container);
-  }
-}
 class BoundToLine extends Bound {
   constructor(startPoint, endPoint) {
     super();
@@ -436,858 +1063,6 @@ class BoundToArc extends BoundToCircle {
     return getPointFromRadialSystem$1(angle, this.radius, this.center);
   }
 }
-
-function removeItem (array, val) {
-  for (let i = 0; i < array.length; i++) {
-    if (array[i] === val) {
-      array.splice(i, 1);
-      i--;
-    }
-  }
-  return array;
-}
-
-function range$1(start, stop, step) {
-  const result = [];
-  if (typeof stop === 'undefined') {
-    stop = start;
-    start = 0;
-  }
-  if (typeof step === 'undefined') {
-    step = 1;
-  }
-  if (step > 0 && start >= stop || step < 0 && start <= stop) {
-    return [];
-  }
-  for (let i = start; step > 0 ? i < stop : i > stop; i += step) {
-    result.push(i);
-  }
-  return result;
-}
-
-class BasicStrategy {
-  constructor(rectangle) {
-    let options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-    this.rectangle = rectangle;
-    this.options = options;
-  }
-  get boundRect() {
-    return typeof this.rectangle === 'function' ? this.rectangle() : this.rectangle;
-  }
-}
-class FloatLeftStrategy extends BasicStrategy {
-  constructor(rectangle) {
-    let options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-    super(rectangle, options);
-    this.options = Object.assign({
-      removable: true
-    }, options);
-    this.radius = options.radius || 80;
-    this.paddingTopLeft = options.paddingTopLeft || new Point(0, 0);
-    this.paddingBottomRight = options.paddingBottomRight || new Point(0, 0);
-    this.yGapBetweenDraggables = options.yGapBetweenDraggables || 0;
-    this.getDistance = options.getDistance || getDistance;
-    this.getPosition = options.getPosition || (draggable => draggable.position);
-  }
-  positioning(rectangleList, _indexesOfNews) {
-    const boundRect = this.boundRect;
-    const rectP2 = boundRect.getP2();
-    let boundaryPoints = [boundRect.position];
-    rectangleList.forEach((rect, rectIndex) => {
-      let position,
-        isValid = false;
-      for (let i = 0; i < boundaryPoints.length; i++) {
-        position = new Point(boundaryPoints[i].x + this.paddingTopLeft.x, i > 0 ? boundaryPoints[i - 1].y + this.yGapBetweenDraggables : boundRect.position.y + this.paddingTopLeft.y);
-        isValid = position.x + rect.size.x < rectP2.x;
-        if (isValid) {
-          break;
-        }
-      }
-      if (!isValid) {
-        position = new Point(boundRect.position.x + this.paddingTopLeft.x, boundaryPoints[boundaryPoints.length - 1].y + (rectIndex > 0 ? this.yGapBetweenDraggables : this.paddingTopLeft.y));
-      }
-      rect.position = position;
-      if (this.options.removable && rect.getP3().y > boundRect.getP3().y) {
-        rect.removable = true;
-      }
-      boundaryPoints = addPointToBoundPoints(boundaryPoints, rect.getP3().add(this.paddingBottomRight));
-    });
-    return rectangleList;
-  }
-  sorting(odlDraggablesList, newDraggables, indexOfNews) {
-    const newList = odlDraggablesList.concat();
-    const listOldPosition = odlDraggablesList.map(draggable => draggable.getPosition());
-    newDraggables.forEach(newDraggable => {
-      let index = indexOfNearestPoint(listOldPosition, this.getPosition(newDraggable), this.radius, this.getDistance);
-      if (index === -1) {
-        index = newList.length;
-      } else {
-        index = newList.indexOf(odlDraggablesList[index]);
-      }
-      newList.splice(index, 0, newDraggable);
-    });
-    newDraggables.forEach(newDraggable => {
-      indexOfNews.push(newList.indexOf(newDraggable));
-    });
-    return newList;
-  }
-}
-
-const addToDefaultScope$1 = function (target) {
-  defaultScope.addTarget(target);
-};
-class Target extends EventEmitter$1 {
-  constructor(element, draggables) {
-    let options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-    super(options);
-    const target = this;
-    this.options = Object.assign({
-      timeEnd: 200,
-      timeExcange: 400
-    }, options);
-    this.positioningStrategy = options.strategy || new FloatLeftStrategy(this.getRectangle.bind(this), {
-      radius: 80,
-      getDistance: transformedSpaceDistanceFactory({
-        x: 1,
-        y: 4
-      }),
-      removable: true
-    });
-    this.element = element;
-    draggables.forEach(draggable => draggable.targets.push(target));
-    this.draggables = draggables;
-    Target.emitter.emit('target:create', this);
-    this.startBounding();
-    this.init();
-  }
-  startBounding() {
-    this.bound = this.options.bound || BoundToElement.bounding(this.element);
-  }
-  positioning(draggables, indexesOfNew) {
-    return this.positioningStrategy.positioning(draggables, indexesOfNew);
-  }
-  sorting(oldDraggables, newDraggables, indexOfNews) {
-    return this.positioningStrategy.sorting(oldDraggables, newDraggables, indexOfNews);
-  }
-  init() {
-    let rectangles, indexesOfNew;
-    this.innerDraggables = this.draggables.filter(draggable => {
-      let element = draggable.element.parentNode;
-      while (element) {
-        if (element === this.element) {
-          return true;
-        }
-        element = element.parentNode;
-      }
-      return false;
-    });
-    if (this.innerDraggables.length) {
-      indexesOfNew = range$1(this.innerDraggables.length);
-      rectangles = this.positioning(this.innerDraggables.map(draggable => {
-        return draggable.getRectangle();
-      }), indexesOfNew);
-      this.setPosition(rectangles, indexesOfNew);
-      this.innerDraggables.forEach(draggable => this.emit('target:add', draggable));
-    }
-  }
-  getRectangle() {
-    return Rectangle.fromElement(this.element, this.container, true);
-  }
-  catchDraggable(draggable) {
-    if (this.options.catchDraggable) {
-      return this.options.catchDraggable(this, draggable);
-    } else {
-      const targetRectangle = this.getRectangle();
-      const draggableSquare = draggable.getRectangle().getSquare();
-      return draggableSquare < targetRectangle.getSquare() && targetRectangle.includePoint(draggable.getCenter());
-    }
-  }
-  getPosition() {
-    return this.getRectangle().position;
-  }
-  getSize() {
-    return this.getRectangle().size;
-  }
-  destroy() {
-    scopes.forEach(scope => removeItem(scope.targets, this));
-  }
-  refresh() {
-    const rectangles = this.positioning(this.innerDraggables.map(draggable => {
-      return draggable.getRectangle();
-    }), []);
-    this.setPosition(rectangles, [], 0);
-  }
-  onEnd(draggable) {
-    const newDraggablesIndex = [];
-    if (this.getRectangle().includePoint(draggable.getCenter())) {
-      draggable.position = this.bound(draggable.position, draggable.getSize());
-    } else {
-      return false;
-    }
-    this.emit('target:beforeAdd', draggable);
-    this.innerDraggables = this.sorting(this.innerDraggables, [draggable], newDraggablesIndex);
-    const rectangles = this.positioning(this.innerDraggables.map(draggable => {
-      return draggable.getRectangle();
-    }), newDraggablesIndex);
-    this.setPosition(rectangles, newDraggablesIndex);
-    if (this.innerDraggables.indexOf(draggable) !== -1) {
-      this.addRemoveOnMove(draggable);
-    }
-    return true;
-  }
-  setPosition(rectangles, indexesOfNew, time) {
-    this.innerDraggables.slice(0).forEach((draggable, i) => {
-      const rect = rectangles[i],
-        timeEnd = time || time === 0 ? time : indexesOfNew.indexOf(i) !== -1 ? this.options.timeEnd : this.options.timeExcange;
-      if (rect.removable) {
-        draggable.move(draggable.initialPosition, timeEnd, true, true);
-        removeItem(this.innerDraggables, draggable);
-        this.emit('target:remove', draggable);
-      } else {
-        draggable.move(rect.position, timeEnd, true, true);
-      }
-    });
-  }
-  add(draggable, time) {
-    const newDraggablesIndex = this.innerDraggables.length;
-    this.emit('target:beforeAdd', draggable);
-    this.pushInnerDraggable(draggable);
-    const rectangles = this.positioning(this.innerDraggables.map(draggable => {
-      return draggable.getRectangle();
-    }), newDraggablesIndex, draggable);
-    this.setPosition(rectangles, [newDraggablesIndex], time || 0);
-    if (this.innerDraggables.indexOf(draggable) !== -1) {
-      this.addRemoveOnMove(draggable);
-    }
-  }
-  pushInnerDraggable(draggable) {
-    if (this.innerDraggables.indexOf(draggable) === -1) {
-      this.innerDraggables.push(draggable);
-    }
-  }
-  addRemoveOnMove(draggable) {
-    draggable.on('drag:move', this.removeHandler = () => {
-      this.remove(draggable);
-    });
-    this.emit('target:add', draggable);
-  }
-  remove(draggable) {
-    draggable.unsubscribe('drag:move', this.removeHandler);
-    const index = this.innerDraggables.indexOf(draggable);
-    if (index === -1) {
-      return;
-    }
-    this.innerDraggables.splice(index, 1);
-    const rectangles = this.positioning(this.innerDraggables.map(draggable => {
-      return draggable.getRectangle();
-    }), []);
-    this.setPosition(rectangles, []);
-    this.emit('target:remove', draggable);
-  }
-  reset() {
-    this.innerDraggables.forEach(draggable => {
-      draggable.move(draggable.initialPosition, 0, true, true);
-      this.emit('target:remove', draggable);
-    });
-    this.innerDraggables = [];
-  }
-  getSortedDraggables() {
-    this.innerDraggables.slice();
-  }
-  get container() {
-    return this._container = this._container || this.options.container || this.options.parent || getDefaultContainer(this.element);
-  }
-}
-Target.emitter = new EventEmitter$1();
-Target.emitter.on('target:create', addToDefaultScope$1);
-
-const scopes = [];
-class Scope extends EventEmitter$1 {
-  constructor(draggables, targets) {
-    let options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-    super(options);
-    scopes.forEach(scope => {
-      if (draggables) {
-        draggables.forEach(draggable => {
-          removeItem(scope.draggables, draggable);
-        });
-      }
-      if (targets) {
-        targets.forEach(target => {
-          removeItem(scope.targets, target);
-        });
-      }
-    });
-    this.draggables = draggables || [];
-    this.targets = targets || [];
-    scopes.push(this);
-    this.options = {
-      timeEnd: options.timeEnd || 400
-    };
-    this.init();
-  }
-  init() {
-    this.draggables.forEach(draggable => {
-      draggable.dragEndAction = () => this.onEnd(draggable);
-    });
-  }
-  addDraggable(draggable) {
-    this.draggables.push(draggable);
-    draggable.dragEndAction = () => this.onEnd(draggable);
-  }
-  addTarget(target) {
-    this.targets.push(target);
-  }
-  onEnd(draggable) {
-    const shotTargets = this.targets.filter(target => {
-      return target.draggables.indexOf(draggable) !== -1;
-    }).filter(target => {
-      return target.catchDraggable(draggable);
-    }).sort((a, b) => {
-      return a.getRectangle().getSquare() - b.getRectangle().getSquare();
-    });
-    if (shotTargets.length) {
-      shotTargets[0].onEnd(draggable);
-    } else if (draggable.targets.length) {
-      draggable.pinPosition(draggable.initialPosition, this.options.timeEnd);
-    }
-    this.emit('scope:change');
-  }
-  reset() {
-    this.targets.forEach(target => target.reset());
-  }
-  refresh() {
-    this.draggables.forEach(draggable => draggable.refresh());
-    this.targets.forEach(target => target.refresh());
-  }
-  get positions() {
-    return this.targets.map(target => {
-      return target.innerDraggables.map(draggable => this.draggables.indexOf(draggable));
-    });
-  }
-  set positions(positions) {
-    const message = 'wrong array length';
-    if (positions.length === this.targets.length) {
-      this.targets.forEach(target => target.reset());
-      positions.forEach((targetIndexes, i) => {
-        targetIndexes.forEach(index => {
-          this.targets[i].add(this.draggables[index]);
-        });
-      });
-    } else {
-      throw message;
-    }
-  }
-}
-const defaultScope = new Scope();
-
-function throttle(func, wait) {
-  let lastTime = 0;
-  return function executedFunction() {
-    const context = this;
-    const args = arguments;
-    const now = Date.now();
-    if (now - lastTime >= wait) {
-      func.apply(context, args);
-      lastTime = now;
-    }
-  };
-}
-
-function getParentsChain(childElement, rootElement) {
-  const chain = [];
-  let element = childElement;
-  while (element.parentNode && element !== rootElement) {
-    chain.unshift(element.parentNode);
-    element = element.parentNode;
-  }
-  return chain;
-}
-
-const throttledDragOver = (callback, duration) => {
-  const throttledCallback = throttle(event => callback(event), duration);
-  return event => {
-    event.preventDefault();
-    throttledCallback(event);
-  };
-};
-const passiveFalse = {
-  passive: false
-};
-const isTouch = navigator.maxTouchPoints > 0;
-const mouseEvents = {
-  start: 'mousedown',
-  move: 'mousemove',
-  end: 'mouseup'
-};
-const touchEvents = {
-  start: 'touchstart',
-  move: 'touchmove',
-  end: 'touchend'
-};
-const draggables = [];
-const transformProperty = 'transform';
-const transitionProperty = 'transition';
-function getTouchByID(element, touchId) {
-  for (let i = 0; i < element.changedTouches.length; i++) {
-    if (element.changedTouches[i].identifier === touchId) {
-      return element.changedTouches[i];
-    }
-  }
-  return false;
-}
-function preventDoubleInit(draggable) {
-  const message = "for this element Dragee.Draggable is already exist, don't create it twice ";
-  if (draggables.some(existing => draggable.element === existing.element)) {
-    throw message;
-  }
-  draggables.push(draggable);
-}
-function addToDefaultScope(draggable) {
-  defaultScope.addDraggable(draggable);
-}
-function copyStyles(source, destination) {
-  const cs = window.getComputedStyle(source);
-  for (let i = 0; i < cs.length; i++) {
-    const key = cs[i];
-    if (key.indexOf('transition') < 0 && key.indexOf('transform') < 0) {
-      destination.style[key] = cs[key];
-    }
-  }
-  for (let i = 0; i < source.children.length; i++) {
-    copyStyles(source.children[i], destination.children[i]);
-  }
-}
-class Draggable extends EventEmitter$1 {
-  constructor(element) {
-    let options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-    super(options);
-    this.targets = [];
-    this.options = options;
-    this.element = element;
-    preventDoubleInit(this);
-    Draggable.emitter.emit('draggable:create', this);
-    this._enable = true;
-    this.startBounding();
-    this.startPositioning();
-    this.startListening();
-  }
-  startBounding() {
-    if (this.options.bound) {
-      this.bounding = {
-        bound: this.options.bound
-      };
-    } else {
-      this.bounding = new BoundToElement(this.container, this.container);
-    }
-  }
-  startPositioning() {
-    this._setDefaultTransition();
-    this.offset = Point.elementOffset(this.element, this.container);
-    this.pinnedPosition = this.offset;
-    this.position = this.offset;
-    this.initialPosition = this.options.position || this.offset;
-    this.pinPosition(this.initialPosition);
-    if (this.bounding.refresh) {
-      this.bounding.refresh();
-    }
-  }
-  startListening() {
-    this._dragStart = event => this.dragStart(event);
-    this._dragMove = event => this.dragMove(event);
-    this._dragEnd = event => this.dragEnd(event);
-    this._nativeDragStart = event => this.nativeDragStart(event);
-    this._nativeDragOver = throttledDragOver(event => this.nativeDragOver(event), this.dragOverThrottleDuration);
-    this._nativeDragEnd = event => this.nativeDragEnd(event);
-    this._nativeDrop = event => this.nativeDrop(event);
-    this._scroll = event => this.onScroll(event);
-    this.handler.addEventListener(touchEvents.start, this._dragStart, passiveFalse);
-    this.handler.addEventListener(mouseEvents.start, this._dragStart, passiveFalse);
-  }
-  getSize() {
-    return Point.elementSize(this.element);
-  }
-  getPosition() {
-    this.position = this.offset.add(this._transformPosition || new Point(0, 0));
-    return this.position;
-  }
-  getCenter() {
-    return this.position.add(this.getSize().mult(0.5));
-  }
-  _setDefaultTransition() {
-    if (!this.element.style[transitionProperty]) {
-      this.element.style[transitionProperty] = window.getComputedStyle(this.element)[transitionProperty];
-    }
-  }
-  _setTransition(time) {
-    let transition = this.element.style[transitionProperty];
-    const transitionCss = `transform ${time}ms`;
-    if (!/transform\s?\d*m?s?/.test(transition)) {
-      if (transition) {
-        transition += `, ${transitionCss}`;
-      } else {
-        transition = transitionCss;
-      }
-    } else {
-      transition = transition.replace(/transform\s?\d*m?s?/g, transitionCss);
-    }
-    if (this.element.style[transitionProperty] !== transition) {
-      this.element.style[transitionProperty] = transition;
-    }
-  }
-  _setTranslate(point) {
-    this._transformPosition = point;
-    const translateCss = `translate3d(${point.x}px, ${point.y}px, 0px)`;
-    let transform = this.element.style[transformProperty];
-    if (this.shouldRemoveZeroTranslate && point.x === 0 && point.y === 0) {
-      transform = transform.replace(/translate3d\([^)]+\)/, '');
-    } else if (!/translate3d\([^)]+\)/.test(transform)) {
-      if (transform) {
-        transform += ' ';
-      }
-      transform += translateCss;
-    } else {
-      transform = transform.replace(/translate3d\([^)]+\)/, translateCss);
-    }
-    if (this.element.style[transformProperty] !== transform) {
-      this.element.style[transformProperty] = transform;
-    }
-  }
-  move(point) {
-    let time = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
-    let isSilent = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
-    point = point.clone();
-    this.position = point;
-    this._setTransition(time);
-    this._setTranslate(point.sub(this.offset));
-    if (!isSilent) {
-      this.emit('drag:move');
-    }
-  }
-  pinPosition(point) {
-    let time = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
-    let silent = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
-    this.pinnedPosition = point.clone();
-    this.move(this.pinnedPosition, time, silent);
-  }
-  resetPositionToInitial() {
-    this.pinPosition(this.initialPosition);
-  }
-  refreshPosition() {
-    this.setPosition(this.getPosition());
-  }
-  setPosition(point) {
-    point = point.clone();
-    this.position = point;
-    this._setTransition(0);
-    this._setTranslate(point.sub(this.offset));
-  }
-  determineDirection(point) {
-    this._previousDirectionPosition ||= this._startPosition;
-    this.leftDirection = this._previousDirectionPosition.x < point.x;
-    this.rightDirection = this._previousDirectionPosition.x > point.x;
-    this.upDirection = this._previousDirectionPosition.y > point.y;
-    this.downDirection = this._previousDirectionPosition.y < point.y;
-    this._previousDirectionPosition = point;
-  }
-  seemsScrolling() {
-    return +new Date() - this._startTouchTimestamp < this.touchDraggingThreshold;
-  }
-  shouldUseNativeDragAndDrop() {
-    if (this.isTouchEvent) {
-      return this.nativeDragAndDrop && this.emulateNativeDragAndDropOnTouch;
-    } else {
-      return this.nativeDragAndDrop;
-    }
-  }
-  dragStart(event) {
-    if (!this._enable) {
-      return;
-    }
-    if (this.stopPropagationOnDragStart) {
-      event.stopPropagation();
-    }
-    this.isTouchEvent = isTouch && event instanceof window.TouchEvent;
-    this.touchPoint = this._startTouchPoint = new Point(this.isTouchEvent ? event.changedTouches[0].pageX : event.clientX, this.isTouchEvent ? event.changedTouches[0].pageY : event.clientY);
-    this._startPosition = this.getPosition();
-    if (this.isTouchEvent) {
-      this._touchId = event.changedTouches[0].identifier;
-      this._startTouchTimestamp = +new Date();
-    }
-    this._startWindowScrollPoint = this.windowScrollPoint;
-    this._startScrollElementsOffset = this.scrollElementsOffset;
-    if (event.target instanceof window.HTMLInputElement || event.target instanceof window.HTMLInputElement) {
-      event.target.focus();
-    }
-    if (this.shouldUseNativeDragAndDrop()) {
-      if (this.isTouchEvent && this.emulateNativeDragAndDropOnTouch) {
-        this._startParentsScrollOffset = this.parentsScrollOffset;
-        const emulateOnFirstMove = event => {
-          if (this.seemsScrolling()) {
-            this.cancelDragging();
-          } else {
-            this.emulateNativeDragAndDrop(event);
-          }
-          cancelEmulation();
-        };
-        const cancelEmulation = () => {
-          document.removeEventListener(touchEvents.move, emulateOnFirstMove);
-          document.removeEventListener(touchEvents.end, cancelEmulation);
-        };
-        document.addEventListener(touchEvents.move, emulateOnFirstMove, passiveFalse);
-        document.addEventListener(touchEvents.end, cancelEmulation, passiveFalse);
-      } else {
-        this.element.addEventListener('dragstart', this._nativeDragStart);
-        this.element.draggable = true;
-        document.addEventListener(mouseEvents.end, this._nativeDragEnd, passiveFalse);
-      }
-    } else {
-      document.addEventListener(touchEvents.move, this._dragMove, passiveFalse);
-      document.addEventListener(mouseEvents.move, this._dragMove, passiveFalse);
-      document.addEventListener(touchEvents.end, this._dragEnd, passiveFalse);
-      document.addEventListener(mouseEvents.end, this._dragEnd, passiveFalse);
-    }
-    window.addEventListener('scroll', this._scroll);
-    this.scrollElements.forEach(p => p.addEventListener('scroll', this._scroll));
-    this.emit('drag:start');
-  }
-  dragMove(event) {
-    let touch;
-    this.isDragging = true;
-    this.isTouchEvent = isTouch && event instanceof window.TouchEvent;
-    if (this.isTouchEvent) {
-      touch = getTouchByID(event, this._touchId);
-      if (!touch) {
-        return;
-      }
-      if (this.seemsScrolling()) {
-        this.cancelDragging();
-        return;
-      }
-    }
-    event.stopPropagation();
-    event.preventDefault();
-    this.touchPoint = new Point(this.isTouchEvent ? touch.pageX : event.clientX, this.isTouchEvent ? touch.pageY : event.clientY);
-    let point = this._startPosition.add(this.touchPoint.sub(this._startTouchPoint)).add(this.windowScrollPoint.sub(this._startWindowScrollPoint)).add(this.scrollElementsOffset.sub(this._startScrollElementsOffset));
-    point = this.bounding.bound(point, this.getSize());
-    this.determineDirection(point);
-    this.move(point);
-    this.element.classList.add('dragee-active');
-  }
-  dragEnd(event) {
-    this.isTouchEvent = isTouch && event instanceof window.TouchEvent;
-    if (this.isTouchEvent && !getTouchByID(event, this._touchId)) {
-      return;
-    }
-    if (this.isDragging) {
-      event.stopPropagation();
-      event.preventDefault();
-    }
-    this.dragEndAction();
-    this.emit('drag:end');
-    this.cancelDragging();
-    setTimeout(() => this.element.classList.remove('dragee-active'));
-  }
-  onScroll(_event) {
-    let point = this._startPosition.add(this.touchPoint.sub(this._startTouchPoint)).add(this.windowScrollPoint.sub(this._startWindowScrollPoint)).add(this.scrollElementsOffset.sub(this._startScrollElementsOffset));
-    point = this.bounding.bound(point, this.getSize());
-    if (!this.nativeDragAndDrop) {
-      this.determineDirection(point);
-      this.move(point);
-    }
-  }
-  nativeDragStart(event) {
-    event.stopPropagation();
-    event.dataTransfer.setData('text', 'FireFox fix');
-    event.dataTransfer.effectAllowed = 'move';
-    document.addEventListener('dragover', this._nativeDragOver);
-    document.addEventListener('dragend', this._nativeDragEnd);
-    document.addEventListener('drop', this._nativeDrop);
-  }
-  nativeDragOver(event) {
-    event.preventDefault();
-    event.dataTransfer.dropEffect = 'move';
-    this.element.classList.add('dragee-placeholder');
-    if (event.clientX === 0 && event.clientY === 0) {
-      return;
-    }
-    this.touchPoint = new Point(event.clientX, event.clientY);
-    let point = this._startPosition.add(this.touchPoint.sub(this._startTouchPoint)).add(this.windowScrollPoint.sub(this._startWindowScrollPoint)).add(this.scrollElementsOffset.sub(this._startScrollElementsOffset));
-    point = this.bounding.bound(point, this.getSize());
-    this.determineDirection(point);
-    this.position = point;
-    this.emit('drag:move');
-  }
-  nativeDragEnd(_event) {
-    this.element.classList.remove('dragee-placeholder');
-    this.dragEndAction();
-    this.emit('drag:end');
-    document.removeEventListener('dragover', this._nativeDragOver);
-    document.removeEventListener('dragend', this._nativeDragEnd);
-    document.removeEventListener(mouseEvents.end, this._nativeDragEnd);
-    document.removeEventListener('drop', this._nativeDrop);
-    window.removeEventListener('scroll', this._scroll);
-    this.scrollElements.forEach(p => p.removeEventListener('scroll', this._scroll));
-    this.isDragging = false;
-    this.element.removeAttribute('draggable');
-    this.element.removeEventListener('dragstart', this._nativeDragStart);
-    this.element.classList.remove('dragee-active');
-  }
-  nativeDrop(event) {
-    event.stopPropagation();
-    event.preventDefault();
-  }
-  cancelDragging() {
-    document.removeEventListener(touchEvents.move, this._dragMove);
-    document.removeEventListener(mouseEvents.move, this._dragMove);
-    document.removeEventListener(touchEvents.end, this._dragEnd);
-    document.removeEventListener(mouseEvents.end, this._dragEnd);
-    document.removeEventListener(mouseEvents.end, this._nativeDragEnd);
-    window.removeEventListener('scroll', this._scroll);
-    this.scrollElements.forEach(p => p.removeEventListener('scroll', this._scroll));
-    this.isDragging = false;
-    this._previousDirectionPosition = null;
-    this.element.removeAttribute('draggable');
-    this.element.removeEventListener('dragstart', this._nativeDragStart);
-  }
-  copyStyles(source, destination) {
-    if (this.options.copyStyles) {
-      this.options.copyStyles(source, destination);
-    } else {
-      copyStyles(source, destination);
-    }
-  }
-  emulateNativeDragAndDrop(event) {
-    const containerRect = this.container.getBoundingClientRect();
-    const clonedElement = this.element.cloneNode(true);
-    clonedElement.style[transformProperty] = '';
-    this.copyStyles(this.element, clonedElement);
-    clonedElement.classList.add('dragee-native-emulation');
-    clonedElement.style.position = 'absolute';
-    document.body.appendChild(clonedElement);
-    this.element.classList.add('dragee-placeholder');
-    const emulationDraggable = new Draggable(clonedElement, {
-      container: document.body,
-      touchDraggingThreshold: 0,
-      bound(point) {
-        return point;
-      },
-      on: {
-        'drag:move': () => {
-          const containerRectPoint = new Point(containerRect.left, containerRect.top);
-          this.position = emulationDraggable.position.sub(containerRectPoint).sub(this._startWindowScrollPoint).add(this._startParentsScrollOffset);
-          this.determineDirection(this.position);
-          this.emit('drag:move');
-        },
-        'drag:end': () => {
-          emulationDraggable.destroy();
-          document.body.removeChild(clonedElement);
-          this.element.classList.remove('dragee-placeholder');
-          this.element.classList.remove('dragee-active');
-          this.emit('drag:end');
-          this.dragEndAction();
-          this.cancelDragging();
-        }
-      }
-    });
-    const containerRectPoint = new Point(containerRect.left, containerRect.top);
-    emulationDraggable._startWindowScrollPoint = this._startWindowScrollPoint;
-    emulationDraggable.move(this.pinnedPosition.add(containerRectPoint).add(this.windowScrollPoint).sub(this.parentsScrollOffset));
-    emulationDraggable.dragStart(event);
-    event.preventDefault();
-  }
-  dragEndAction() {
-    this.pinPosition(this.position);
-  }
-  getRectangle() {
-    return new Rectangle(this.position, this.getSize());
-  }
-  refresh() {
-    if (this.bounding.refresh) {
-      this.bounding.refresh();
-    }
-  }
-  destroy() {
-    this.handler.removeEventListener(touchEvents.start, this._dragStart);
-    this.handler.removeEventListener(mouseEvents.start, this._dragStart);
-    this.element.removeEventListener('dragstart', this._nativeDragStart);
-    document.removeEventListener(touchEvents.move, this._dragMove);
-    document.removeEventListener(mouseEvents.move, this._dragMove);
-    document.removeEventListener(touchEvents.end, this._dragEnd);
-    document.removeEventListener(mouseEvents.end, this._dragEnd);
-    document.removeEventListener('dragover', this._nativeDragOver);
-    document.removeEventListener('dragend', this._nativeDragEnd);
-    document.removeEventListener(mouseEvents.end, this._nativeDragEnd);
-    document.removeEventListener('drop', this._nativeDrop);
-    this.resetEmitter();
-    const index = draggables.indexOf(this);
-    if (index > -1) {
-      draggables.splice(index, 1);
-    }
-  }
-  get container() {
-    return this._container = this._container || this.options.container || this.options.parent || getDefaultContainer(this.element);
-  }
-  get handler() {
-    if (!this._handler) {
-      if (typeof this.options.handler === 'string') {
-        this._handler = this.element.querySelector(this.options.handler) || this.element;
-      } else {
-        this._handler = this.options.handler || this.element;
-      }
-    }
-    return this._handler;
-  }
-  get stopPropagationOnDragStart() {
-    return this.options.stopPropagationOnDragStart || false;
-  }
-  get nativeDragAndDrop() {
-    return this.options.nativeDragAndDrop || false;
-  }
-  get emulateNativeDragAndDropOnTouch() {
-    return this.options.emulateNativeDragAndDropOnTouch || false;
-  }
-  get shouldRemoveZeroTranslate() {
-    return this.options.shouldRemoveZeroTranslate || false;
-  }
-  get touchDraggingThreshold() {
-    return this.options.touchDraggingThreshold || 0;
-  }
-  get dragOverThrottleDuration() {
-    return this.options.dragOverThrottleDuration || 16;
-  }
-  get windowScrollPoint() {
-    return new Point(window.scrollX, window.scrollY);
-  }
-  get scrollRootContainer() {
-    return this.options.scrollRootContainer || this.container;
-  }
-  get scrollElements() {
-    return this._cachedScrollElements ? this._cachedScrollElements : this._cachedScrollElements = getParentsChain(this.element, this.scrollRootContainer);
-  }
-  get scrollElementsOffset() {
-    return new Point(this.scrollElements.reduce((sum, p) => sum + p.scrollLeft, 0), this.scrollElements.reduce((sum, p) => sum + p.scrollTop, 0));
-  }
-  get parents() {
-    return this._cachedParents ? this._cachedParents : this._cachedParents = getParentsChain(this.element, this.container);
-  }
-  get parentsScrollOffset() {
-    return new Point(this.parents.reduce((sum, p) => sum + p.scrollLeft, 0), this.parents.reduce((sum, p) => sum + p.scrollTop, 0));
-  }
-  get enable() {
-    return this._enable;
-  }
-  set enable(enable) {
-    if (enable) {
-      this.element.classList.remove('dragee-disable');
-    } else {
-      this.element.classList.add('dragee-disable');
-    }
-    this._enable = enable;
-  }
-}
-Draggable.emitter = new EventEmitter$1();
-Draggable.emitter.on('draggable:create', addToDefaultScope);
 
 function getAngle(p1, p2) {
   const diff = p2.sub(p1);
@@ -1369,56 +1144,6 @@ class Spider {
   }
 }
 
-class EventEmitter {
-  constructor() {
-    let options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-    this.events = {};
-    if (options && options.on) {
-      for (const [eventName, fn] of Object.entries(options.on)) {
-        this.on(eventName, fn);
-      }
-    }
-  }
-  emit(eventName) {
-    this.interrupted = false;
-    const args = [].slice.call(arguments, 1);
-    if (!this.events[eventName]) return;
-    for (const func of this.events[eventName]) {
-      func.apply(...args);
-      if (this.interrupted) {
-        return;
-      }
-    }
-  }
-  interrupt() {
-    this.interrupted = true;
-  }
-  on(eventName, fn) {
-    if (!this.events[eventName]) {
-      this.events[eventName] = [];
-    }
-    this.events[eventName].push(fn);
-  }
-  prependOn(eventName, fn) {
-    if (!this.events[eventName]) {
-      this.events[eventName] = [];
-    }
-    this.events[eventName].unshift(fn);
-  }
-  unsubscribe(eventName, fn) {
-    if (this.events[eventName]) {
-      const index = this.events[eventName].indexOf(fn);
-      this.events[eventName].splice(index, 1);
-    }
-  }
-  resetEmitter() {
-    this.events = {};
-  }
-  resetOn(eventName) {
-    this.events[eventName] = [];
-  }
-}
-
 class ArcSlider extends EventEmitter {
   constructor(area, element) {
     let options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
@@ -1457,14 +1182,20 @@ class ArcSlider extends EventEmitter {
     //      var angle = Geometry.getNearestAngle(this.options.angles, this.angle);
     //      this.setAngle(angle,this.options.time);
     this.emit('arcslider:change', {
+      arcSlider: this,
       angle: this.angle
     });
   }
   setAngle(angle, time) {
-    const position = getPointFromRadialSystem(this.angle, this.options.radius, this.shiftedCenter);
     this.angle = normalizeAngle(angle);
-    this.draggable.pinPosition(position, time || 0);
-    this.emit('arcslider:change', this.angle);
+    const position = getPointFromRadialSystem(this.angle, this.options.radius, this.shiftedCenter);
+    this.draggable.pinPosition(position, {
+      duration: time || 0
+    });
+    this.emit('arcslider:change', {
+      arcSlider: this,
+      angle: this.angle
+    });
   }
 }
 
@@ -1573,7 +1304,9 @@ class Chart extends EventEmitter {
     this.draggables.forEach((_draggable, index) => {
       this.drawLimitImg(index);
     });
-    this.emit('chart:draw');
+    this.emit('chart:draw', {
+      chart: this
+    });
   }
   createClone(element) {
     let options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
@@ -1680,7 +1413,7 @@ class Chart extends EventEmitter {
       const angle = this.angles[i];
       const halfSize = draggable.getSize().mult(0.5);
       const position = getPointFromRadialSystem(angle, this.options.touchRadius, this.options.center.sub(halfSize));
-      draggable.moveAndSave(position);
+      draggable.pinPosition(position);
     });
     this.draw();
   }

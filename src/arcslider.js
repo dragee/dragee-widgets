@@ -1,7 +1,8 @@
 import {
   Draggable,
   BoundToArc,
-  Rectangle
+  Rectangle,
+  EventEmitter
 } from 'dragee'
 
 import {
@@ -9,8 +10,6 @@ import {
   getAngle,
   normalizeAngle
 } from './geometry/angles'
-
-import EventEmitter from './EventEmitter'
 
 export default class ArcSlider extends EventEmitter {
   constructor(area, element, options={}) {
@@ -62,17 +61,17 @@ export default class ArcSlider extends EventEmitter {
     this.updateAngle()
     //      var angle = Geometry.getNearestAngle(this.options.angles, this.angle);
     //      this.setAngle(angle,this.options.time);
-    this.emit('arcslider:change', { angle: this.angle })
+    this.emit('arcslider:change', { arcSlider: this, angle: this.angle })
   }
 
   setAngle(angle, time) {
+    this.angle = normalizeAngle(angle)
     const position = getPointFromRadialSystem(
       this.angle,
       this.options.radius,
       this.shiftedCenter
     )
-    this.angle = normalizeAngle(angle, position)
-    this.draggable.pinPosition(position, time||0)
-    this.emit('arcslider:change', this.angle)
+    this.draggable.pinPosition(position, { duration: time || 0 })
+    this.emit('arcslider:change', { arcSlider: this, angle: this.angle })
   }
 }

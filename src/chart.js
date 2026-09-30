@@ -5,6 +5,7 @@ import {
   BoundToArc,
   Point,
   Rectangle,
+  EventEmitter,
   getDistance
 } from 'dragee'
 
@@ -14,8 +15,6 @@ import {
   getAngle,
   normalizeAngle
 } from './geometry/angles'
-
-import EventEmitter from './EventEmitter'
 
 const rnd = function() {
   return Math.round(Math.random()*255)
@@ -128,7 +127,7 @@ export default class Chart extends EventEmitter {
       this.drawLimitImg(index)
     })
 
-    this.emit('chart:draw')
+    this.emit('chart:draw', { chart: this })
   }
 
   createClone(element, options = {}) {
@@ -252,7 +251,7 @@ export default class Chart extends EventEmitter {
         this.options.center.sub(halfSize)
       )
 
-      draggable.moveAndSave(position)
+      draggable.pinPosition(position)
     })
     this.draw()
   }
