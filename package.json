@@ -1,6 +1,6 @@
 {
   "name": "dragee-widgets",
-  "version": "0.2.3",
+  "version": "0.3.0",
   "description": "Widgets Based on Dragee Library",
   "scripts": {
     "build": "rollup --config rollup.config.mjs",
@@ -24,7 +24,7 @@
   "author": "Vitaliy Yarovuy, Volodymyr Myskov",
   "license": "ISC",
   "dependencies": {
-    "dragee": "^1.2.2",
+    "dragee": "^2.0.1",
     "rollup-plugin-babel": "^4.4.0",
     "rollup-plugin-terser": "^7.0.2"
   },

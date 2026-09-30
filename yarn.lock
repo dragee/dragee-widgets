@@ -1884,10 +1884,10 @@ doctrine@^3.0.0:
   dependencies:
     esutils "^2.0.2"
 
-dragee@^1.2.2:
-  version "1.2.2"
-  resolved "https://registry.yarnpkg.com/dragee/-/dragee-1.2.2.tgz#3037e758c5081a51b843bdbe7bb9d7dfd0b9a2c3"
-  integrity sha512-7GgzrM3aDZw+GwcYUv84SMeoMQB6+iMM5gEwXYEAGbWzjWET3cKiYukRqWnbnxrmkka3XNqOkJ4KAGlt47qqSw==
+dragee@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/dragee/-/dragee-2.0.1.tgz#e8eaf8f057d09fc3432e9b921b09c5236f7b0706"
+  integrity sha512-zzWiJlW6pBgu5M222w5kZvoK7yzRj628skt5wfYaPr46x3U+cEx8UbVn5c+f0UKRgCfsTp8swA/kkk5YlMMurQ==
 
 electron-to-chromium@^1.5.73:
   version "1.5.101"
