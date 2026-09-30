@@ -121,8 +121,17 @@
                       <li>H</li>
                     </ul>
                   </div>
+                  <p class="demo-readout">
+                    <button type="button" class="btn btn-small chart-reset">Equal slices</button>
+                    <span class="chart-percent"></span>
+                  </p>
                 </div>
                 <style>
+                    .demo-readout{
+                      margin: 10px 0 0;
+                      font-family: monospace;
+                    }
+
                     #DemoChart{
                       padding: 5%;
                       border: 1px dashed #333;
@@ -172,7 +181,23 @@
 
                         [].push.apply(draggableElements, areaElement.getElementsByTagName("li"))
 
-                        chart = new DrageeWidgets.Chart(areaElement, draggableElements, { boundAngle: 0, radius: 150, touchRadius: 150 });
+                        chart = new DrageeWidgets.Chart(areaElement, draggableElements, {
+                          boundAngle: 0,
+                          radius: 150,
+                          touchRadius: 150,
+                          on: {
+                            "chart:draw": function(event) {
+                              root.getElementsByClassName("chart-percent")[0].textContent = event.chart.getPercent()
+                                .map(function(percent) { return Math.round(percent * 100) + "%" })
+                                .join(" ");
+                            }
+                          }
+                        });
+
+                        root.getElementsByClassName("chart-reset")[0].addEventListener("click", function() {
+                          var step = 2 * Math.PI / draggableElements.length;
+                          chart.setAngles(draggableElements.map(function(_element, i) { return i * step }));
+                        });
                     });
                 </script>
             </div>
@@ -186,7 +211,13 @@
                 <div id="DemoArcSlider" class="demo-html">
                     <div class="arc-area">
                       <span class="arc-slider"></span>
-                    </ul>
+                    </div>
+                    <p class="demo-readout">
+                      <button type="button" class="btn btn-small arc-set" data-angle="3.1416">180°</button>
+                      <button type="button" class="btn btn-small arc-set" data-angle="4.7124">270°</button>
+                      <button type="button" class="btn btn-small arc-set" data-angle="0">0°</button>
+                      angle: <span class="arc-angle"></span>
+                    </p>
                 </div>
                 <style>
                     #DemoArcSlider{
@@ -244,6 +275,16 @@
 
                         arcSlider = new DrageeWidgets.ArcSlider(areaElement, slider, {
                           radius: 100,
+                        });
+
+                        arcSlider.on("arcslider:change", function(event) {
+                          root.getElementsByClassName("arc-angle")[0].textContent = Math.round(event.angle * 180 / Math.PI) + "°";
+                        });
+
+                        [].forEach.call(root.getElementsByClassName("arc-set"), function(button) {
+                          button.addEventListener("click", function() {
+                            arcSlider.setAngle(parseFloat(button.dataset.angle), 300);
+                          });
                         });
                     });
                 </script>
